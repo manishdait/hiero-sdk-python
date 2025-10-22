@@ -8,6 +8,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 ### Added
+- Added `checksum` filed for TopicId, FileId, ContractId, ScheduleId class
 
 ### Changed
 
