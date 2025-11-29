@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+
 if [[ -z "${REPO:-}" || -z "${BASE:-}" || -z "${HEAD:-}" ]]; then
     echo "❌ ERROR: Missing required environment variables (REPO, BASE, HEAD)."
     exit 1
 fi
+
+GH_TOKEN="${GH_TOKEN:-}"
 
 echo "Checking CHANGELOG.md..."
 echo "Base SHA: $BASE"
@@ -15,24 +18,50 @@ gh api "repos/$REPO/contents/CHANGELOG.md?ref=$HEAD" --jq '.content' | base64 -d
 
 
 extract_unreleased() {
-  sed -n '/^## \[Unreleased\]/,/^## \[/p' "$1" | sed '1d;$d' || true
+  awk '
+    BEGIN { in_unrel=0 }
+    /^## \[Unreleased\]/ { in_unrel=1; next }
+    /^## \[/ && in_unrel==1 { exit }
+    in_unrel==1 { print }
+  ' "$1"
 }
 
 extract_released() {
-  sed '1,/^## \[Unreleased\]/d' "$1" || true
+  awk '
+    BEGIN { seen_unrel=0 }
+    /^## \[Unreleased\]/ { seen_unrel=1; next }
+    seen_unrel==1 { print }
+  ' "$1"
 }
 
+echo `ls`
+echo `cat base.md`
+echo `cat head.md`
+echo "extracting"
+
 extract_unreleased base.md > base_unrel.txt
+echo "extracting base"
 extract_unreleased head.md > head_unrel.txt
+echo "extracting head"
 
 extract_released base.md > base_rel.txt
+echo "extracting base"
+echo `cat base_rel.txt`
 extract_released head.md > head_rel.txt
+echo "extracting head"
+echo `cat head_rel.txt`
+
+diff -u base_unrel.txt head_unrel.txt 
 
 DIFF_UNREL=$(diff -u base_unrel.txt head_unrel.txt || true)
+echo "$DIFF_UNREL"
 DIFF_REL=$(diff -u base_rel.txt head_rel.txt || true)
+echo "$DIFF_REL"
 
 
 ADDED_TO_UNREL=$(echo "$DIFF_UNREL" | grep -E '^\+' | grep -v '^\+\+\+' || true)
+
+echo "$ADDED_TO_UNREL"
 
 if [[ -z "$ADDED_TO_UNREL" ]]; then
     echo "❌ FAIL: No additions detected in the [Unreleased] section."
