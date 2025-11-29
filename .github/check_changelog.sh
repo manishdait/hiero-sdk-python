@@ -12,16 +12,16 @@ failed=0
 
 # Fetch upstream
 # Add the upstream remote (PR base repository)
-git remote add upstream "https://github.com/${{ github.event.pull_request.base.repo.full_name }}.git"
+git remote add upstream "https://github.com/${BASE_REPO}.git"
 
 # Fetch the base branch (the branch PR is targeting)
-git fetch upstream "${{ github.event.pull_request.base.ref }}" >/dev/null 2>&1
+git fetch upstream "${BASE_REF}" >/dev/null 2>&1
 
 # Get raw diff
-raw_diff=$(git diff upstream/main -- "$CHANGELOG")
+raw_diff=$(git diff "upstream/${BASE_REF}" -- "$CHANGELOG")
 
 # 1️⃣ Show raw diff with colors
-echo "=== Raw git diff of $CHANGELOG against upstream/main ==="
+echo "=== Raw git diff of $CHANGELOG against "upstream/${BASE_REF}" ==="
 while IFS= read -r line; do
     if [[ $line =~ ^\+ && ! $line =~ ^\+\+\+ ]]; then
         echo -e "${GREEN}$line${RESET}"
