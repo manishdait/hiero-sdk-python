@@ -62,31 +62,3 @@ jobs:
           HEAD: ${{ github.event.pull_request.head.sha }}
           PR_ACTOR: ${{ github.actor }}
         run: bash .github/check_changelog.sh
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          BASE: ${{ github.event.pull_request.base.sha }}
-          HEAD: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-
-          gh api repos/$REPO/contents/CHANGELOG.md?ref=$BASE --jq '.content' | base64 -d > base.md
-          gh api repos/$REPO/contents/CHANGELOG.md?ref=$HEAD --jq '.content' | base64 -d > head.md
-
-          awk '/## \[Unreleased\]/{flag=1;next} /^## \[/{flag=0} flag' base.md > base_unrel.txt
-          awk '/## \[Unreleased\]/{flag=1;next} /^## \[/{flag=0} flag' head.md > head_unrel.txt
-
-          awk '/## \[Unreleased\]/{flag=1;next} flag && /^## \[/{flag=0} !flag' base.md > base_rest.txt
-          awk '/## \[Unreleased\]/{flag=1;next} flag && /^## \[/{flag=0} !flag' head.md > head_rest.txt
-
-          if ! diff -u base_rest.txt head_rest.txt >/dev/null; then
-            echo "❌ ERROR: You modified parts of CHANGELOG *outside* the Unreleased section."
-            exit 1
-          fi
-
-          if diff -u base_unrel.txt head_unrel.txt >/dev/null; then
-            echo "❌ FAIL: No additions to [Unreleased] section"
-            exit 1
-          fi
-
-          echo "✅ PASS: CHANGELOG [Unreleased] section updated"
