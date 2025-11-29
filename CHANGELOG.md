@@ -15,7 +15,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Changed
 
 - Removed duplicate import of transaction_pb2 in transaction.py
-- Readme.md
 
 ### Fixed
 
