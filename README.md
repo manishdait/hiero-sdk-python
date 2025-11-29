@@ -12,6 +12,7 @@ A Python SDK for interacting with the Hedera Hashgraph platform.
 ### Installing from PyPI
 
 ```bash
+# some demo comment
 pip install --upgrade pip
 pip install hiero-sdk-python
 ```
