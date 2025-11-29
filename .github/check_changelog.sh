@@ -11,8 +11,11 @@ RESET="\033[0m"
 failed=0
 
 # Fetch upstream
-git remote add upstream https://github.com/${GITHUB_REPOSITORY}.git
-git fetch upstream main >/dev/null 2>&1
+# Add the upstream remote (PR base repository)
+git remote add upstream "https://github.com/${{ github.event.pull_request.base.repo.full_name }}.git"
+
+# Fetch the base branch (the branch PR is targeting)
+git fetch upstream "${{ github.event.pull_request.base.ref }}" >/dev/null 2>&1
 
 # Get raw diff
 raw_diff=$(git diff upstream/main -- "$CHANGELOG")
