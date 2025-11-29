@@ -24,6 +24,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Added
 
+- add at in release
 - Add a limit of one comment for PR to the commit verification bot. [#892]
 - Removed `actions/checkout@v4` from `bot-verified-commits.yml`
 - Add comprehensive documentation for `ReceiptStatusError` in `docs/sdk_developers/training/receipt_status_error.md`
