@@ -19,6 +19,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 
 - Changelog check workflow to correctly detect updates in the [Unreleased]
+- add at in release
 
 ## [0.1.9] - 2025-11-26
 
