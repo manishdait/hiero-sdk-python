@@ -19,12 +19,12 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 
 - Changelog check workflow to correctly detect updates in the [Unreleased]
+- add at in release
 
 ## [0.1.9] - 2025-11-26
 
 ### Added
 
-- add at in release
 - Add a limit of one comment for PR to the commit verification bot. [#892]
 - Removed `actions/checkout@v4` from `bot-verified-commits.yml`
 - Add comprehensive documentation for `ReceiptStatusError` in `docs/sdk_developers/training/receipt_status_error.md`
