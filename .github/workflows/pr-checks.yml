@@ -62,3 +62,93 @@ jobs:
           HEAD: ${{ github.event.pull_request.head.sha }}
           PR_ACTOR: ${{ github.actor }}
         run: bash .github/check_changelog.sh
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          echo "Checking for CHANGELOG.md in PR..."
+
+          # Retrieve list of changed files
+          FILES_JSON="$(gh api repos/$REPO/pulls/${{ github.event.pull_request.number }}/files --paginate)"
+
+          # If CHANGELOG.md not changed -> fail
+          if ! echo "$FILES_JSON" | jq -e '.[] | select(.filename | test("(^|/)CHANGELOG\\.md$"; "i"))' >/dev/null; then
+            echo "FAIL: CHANGELOG.md was not modified in this PR."
+            exit 1
+          fi
+
+          echo "Downloading base version of CHANGELOG.md..."
+          gh api repos/$REPO/contents/CHANGELOG.md?ref=$BASE_SHA --jq '.content' | base64 -d > changelog_base.md
+
+          echo "Downloading head version of CHANGELOG.md..."
+          gh api repos/$REPO/contents/CHANGELOG.md?ref=$HEAD_SHA --jq '.content' | base64 -d > changelog_head.md
+
+          echo "Running diff..."
+          diff -u changelog_base.md changelog_head.md > changelog.diff || true
+
+          # Extract added lines (+ but not +++)
+          ADDED=$(grep -E '^\+[^+]' changelog.diff | sed 's/^+//' || true)
+
+          if [[ -z "$ADDED" ]]; then
+            echo "FAIL: CHANGELOG.md was modified but no additions detected."
+            exit 1
+          fi
+
+          echo "Validating additions..."
+
+          # Load file into array
+          mapfile -t FILE_LINES < changelog_head.md
+
+          # Function to locate section for a given line number
+          get_section_for_line() {
+            local ln="$1"
+            while (( ln >= 1 )); do
+              local line="${FILE_LINES[ln-1]}"
+
+              if [[ "$line" =~ ^##\ \[(.*)\] ]]; then
+                echo "${BASH_REMATCH[1]}"
+                return
+              fi
+
+              ((ln--))
+            done
+
+            echo "unknown"
+          }
+
+          VALID=false
+          CURR_LINE=0
+
+          # Walk through diff lines to track line numbers and identify section
+          while read -r diff_line; do
+            if [[ "$diff_line" =~ ^@@.*\+([0-9]+) ]]; then
+              CURR_LINE="${BASH_REMATCH[1]}"
+              continue
+            fi
+
+            if [[ "$diff_line" =~ ^\+[^+] ]]; then
+              section=$(get_section_for_line "$CURR_LINE")
+
+              if [[ "$section" == "Unreleased" ]]; then
+                VALID=true
+              else
+                echo "❌ FAIL: Changelog addition found under released section: [$section]"
+                echo "     → Line: ${diff_line:1}"
+                echo "Please move this entry under the [Unreleased] section."
+                exit 1
+              fi
+            fi
+
+            ((CURR_LINE++))
+          done < changelog.diff
+
+          if [[ "$VALID" == true ]]; then
+            echo "✅ PASS: All additions are correctly placed under [Unreleased]."
+            exit 0
+          fi
+
+          echo "❌ FAIL: No valid entries found under [Unreleased]."
+          exit 1
