@@ -56,6 +56,9 @@ class AccountId:
         """
         if account_id_str is None or not isinstance(account_id_str, str):
             raise ValueError(f"Invalid account ID string '{account_id_str}'. Expected format 'shard.realm.num'.")
+        
+        # if (account_id_str.startswith('0x') and len(account_id_str) == 42) or len(account_id_str) == 40:
+        #     pass
 
         try:
             shard, realm, num, checksum = parse_from_string(account_id_str)

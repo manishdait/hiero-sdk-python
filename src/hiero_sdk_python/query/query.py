@@ -111,11 +111,13 @@ class Query(_Executable):
 
         self.operator = self.operator or client.operator
         self.node_account_ids = list(set(self.node_account_ids))
+        self._nodes = self.node_account_ids
 
         # If no payment amount was specified and payment is required for this query,
         # get the cost from the network and set it as the payment amount
         if self.payment_amount is None and self._is_payment_required():
             self.payment_amount = self.get_cost(client)
+
 
     def _make_request_header(self) -> query_header_pb2.QueryHeader:
         """

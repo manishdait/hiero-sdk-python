@@ -1,10 +1,11 @@
 from os import error
 import time
-from typing import Callable, Optional, Any, TYPE_CHECKING
+from typing import Callable, List, Optional, Any, TYPE_CHECKING
 import grpc
 from abc import ABC, abstractmethod
 from enum import IntEnum
 
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.exceptions import MaxAttemptsError
 if TYPE_CHECKING:
@@ -74,6 +75,10 @@ class _Executable(ABC):
         self._min_backoff = DEFAULT_MIN_BACKOFF
         self._grpc_deadline = DEFAULT_GRPC_DEADLINE
         self.node_account_id = None
+
+        # nodes for against which the transaction is executed.
+        self._nodes: List[AccountId] = []
+        self._node_index = 0
 
     @abstractmethod
     def _should_retry(self, response) -> _ExecutionState:
@@ -177,11 +182,12 @@ class _Executable(ABC):
                 current_backoff *= 2
                         
             # Set the node account id to the client's node account id
-            node = client.network.current_node
-            self.node_account_id = node._account_id
+            current = self._select_node()
+            node = [x for x in client.network.nodes if x._account_id == current]
+            self.node_account_id = node[0]._account_id
   
             # Create a channel wrapper from the client's channel
-            channel = node._get_channel()
+            channel = node[0]._get_channel()
             
             logger.trace("Executing", "requestId", self._get_request_id(), "nodeAccountID", self.node_account_id, "attempt", attempt + 1, "maxAttempts", max_attempts)
 
@@ -230,6 +236,13 @@ class _Executable(ABC):
         logger.error("Exceeded maximum attempts for request", "requestId", self._get_request_id(), "last exception being", err_persistant)
         
         raise MaxAttemptsError("Exceeded maximum attempts for request", self.node_account_id, err_persistant)
+    
+    def _select_node(self):
+        if not self._nodes:
+            raise ValueError("No nodes available to select.")
+        self._node_index = (self._node_index + 1) % len(self._nodes)
+        current_node = self._nodes[self._node_index]
+        return current_node
 
 
 def _delay_for_attempt(request_id: str, current_backoff: int, attempt: int, logger, error):

@@ -78,6 +78,9 @@ class AccountInfo:
         """
         if proto is None:
             raise ValueError("Account info proto is None")
+        
+        print(f"Alias:") 
+        print(proto.alias.hex())
 
         account_info: "AccountInfo" = cls(
             account_id=AccountId._from_proto(proto.accountID) if proto.accountID else None,

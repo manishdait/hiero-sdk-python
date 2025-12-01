@@ -109,6 +109,7 @@ class TokenNftInfoQuery(Query):
             ReceiptStatusError: If the query fails with a receipt status error
         """
         self._before_execute(client)
+       
         response = self._execute(client)
 
         return TokenNftInfo._from_proto(response.tokenGetNftInfo.nft)
