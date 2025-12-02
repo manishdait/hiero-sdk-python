@@ -175,7 +175,12 @@ class _Executable(ABC):
         tx_id = self.transaction_id if hasattr(self, "transaction_id") else None
         
         logger = client.logger
-        
+
+        if len(self._nodes) == 0:
+            print("Set from client")
+            self._nodes = [client.network.current_node._account_id]
+            print(self._nodes)
+
         for attempt in range(max_attempts):
             # Exponential backoff for retries
             if attempt > 0 and current_backoff < self._max_backoff:
@@ -183,6 +188,8 @@ class _Executable(ABC):
                         
             # Set the node account id to the client's node account id
             current = self._select_node()
+            print(current)
+
             node = [x for x in client.network.nodes if x._account_id == current]
             self.node_account_id = node[0]._account_id
   
