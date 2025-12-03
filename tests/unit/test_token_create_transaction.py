@@ -535,7 +535,7 @@ def test_transaction_execution_failure(mock_account_ids):
     token_tx.transaction_id = generate_transaction_id(treasury_account)
     
     # Set the transaction body bytes to avoid calling build_transaction_body
-    token_tx._transaction_body_bytes = b"mock_body_bytes"
+    token_tx._transaction_body_bytes = {AccountId.from_string("0.0.2"): b"mock_body_bytes"}
     
     # Mock the client and its operator_private_key
     token_tx.client = MagicMock()

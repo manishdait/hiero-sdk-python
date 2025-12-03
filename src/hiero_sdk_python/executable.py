@@ -1,10 +1,11 @@
 from os import error
 import time
-from typing import Callable, Optional, Any, TYPE_CHECKING
+from typing import Callable, List, Optional, Any, TYPE_CHECKING
 import grpc
 from abc import ABC, abstractmethod
 from enum import IntEnum
 
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.exceptions import MaxAttemptsError
 if TYPE_CHECKING:
@@ -74,6 +75,10 @@ class _Executable(ABC):
         self._min_backoff = DEFAULT_MIN_BACKOFF
         self._grpc_deadline = DEFAULT_GRPC_DEADLINE
         self.node_account_id = None
+
+        # node_id account which the execution should run
+        self._nodes: List[AccountId] = []
+        self._node_index = 0
 
     @abstractmethod
     def _should_retry(self, response) -> _ExecutionState:
@@ -177,7 +182,12 @@ class _Executable(ABC):
                 current_backoff *= 2
                         
             # Set the node account id to the client's node account id
-            node = client.network.current_node
+            if len(self._nodes) == 0:
+                node = client.network.current_node
+            else:
+                current_node = self.current_node()
+                node = next((n for n in client.network.nodes if n._account_id == current_node), None)
+
             self.node_account_id = node._account_id
   
             # Create a channel wrapper from the client's channel
@@ -230,7 +240,14 @@ class _Executable(ABC):
         logger.error("Exceeded maximum attempts for request", "requestId", self._get_request_id(), "last exception being", err_persistant)
         
         raise MaxAttemptsError("Exceeded maximum attempts for request", self.node_account_id, err_persistant)
+    
+    def current_node(self):
+        if not self._nodes:
+            raise ValueError("No nodes available to select.")
 
+        node = self._nodes[self._node_index]
+        self._node_index = (self._node_index + 1) % len(self._nodes)
+        return node
 
 def _delay_for_attempt(request_id: str, current_backoff: int, attempt: int, logger, error):
     """

@@ -335,7 +335,11 @@ class Transaction(_Executable):
 
         if not self.is_signed_by(client.operator_private_key.public_key()):
             self.sign(client.operator_private_key)
-
+        
+        # Set the node_ids to used
+        for node in self._transaction_body_bytes.keys():
+            self._nodes.append(node)
+        
         # Call the _execute function from executable.py to handle the actual execution
         response = self._execute(client)
 
