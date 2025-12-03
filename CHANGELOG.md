@@ -15,8 +15,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Changed
 
 ### Fixed
-
--
+- Executable to use only the nodes present in `transaction_body_bytes`
 
 ### Breaking Change
 
