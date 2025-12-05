@@ -8,16 +8,35 @@ from hiero_sdk_python import (
     Client,
     Network,
     Transaction,
+    AccountCreateTransaction
 )
 
 # Setup
-load_dotenv(".env")
+load_dotenv()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 executor_id: AccountId = AccountId.from_string(os.getenv("OPERATOR_ID"))
 executor_key: PrivateKey = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
 
+
 # Create the client that will eventually execute the transaction
-executor_client: Client = Client(Network(network="testnet"))
+executor_client: Client = Client(Network(network=network_name))
 executor_client.set_operator(executor_id, executor_key)
+
+
+freezer_key: PrivateKey = PrivateKey.generate()
+receipt = (
+    AccountCreateTransaction()
+    .set_key_without_alias(freezer_key.public_key())
+    .freeze_with(executor_client)
+    .execute(executor_client)
+)
+
+freezer_id: AccountId =  receipt.account_id
+
+tx_freezer_client: Client = Client(Network(network=network_name))  
+tx_freezer_client.set_operator(freezer_id, freezer_key)
+
 
 # 1. Create Transaction
 tx = TopicCreateTransaction().set_memo("Test Topic Creation")
@@ -25,10 +44,9 @@ tx_id = TransactionId.generate(executor_client.operator_account_id)
 
 # 2. Manually set Node and ID
 tx.set_transaction_id(tx_id)
-tx.node_account_id = AccountId.from_string("0.0.3") # Explicitly set to 0.0.3
 
 # 3. Manual Freeze (Generates body ONLY for 0.0.3)
-tx.freeze() 
+tx.freeze_with(tx_freezer_client)
 
 # 4. Serialize
 unsigned_bytes = tx.to_bytes()

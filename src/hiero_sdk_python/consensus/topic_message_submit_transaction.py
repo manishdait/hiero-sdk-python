@@ -301,7 +301,7 @@ class TopicMessageSubmitTransaction(Transaction):
 
             self._transaction_body_bytes.clear()
             self._signature_map.clear()
-
+            self.node_account_id = None
             self.freeze_with(client)
 
             for signing_key in self._signing_keys:

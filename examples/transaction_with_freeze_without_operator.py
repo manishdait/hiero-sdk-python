@@ -11,17 +11,19 @@ from hiero_sdk_python import (
 )
 
 # Setup
-load_dotenv(".env")
+load_dotenv()
+network_name = os.getenv("NETWORK", "testnet").lower()
+
 executor_id: AccountId = AccountId.from_string(os.getenv("OPERATOR_ID"))
 executor_key: PrivateKey = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
 
 
 # Create the client that will eventually execute the transaction
-executor_client: Client = Client(Network(network="testnet"))
+executor_client: Client = Client(Network(network=network_name))
 executor_client.set_operator(executor_id, executor_key)
 
 
-tx_freezer_client: Client = Client(Network(network="testnet"))
+tx_freezer_client: Client = Client(Network(network=network_name))
 
 
 # 1. Create Transaction

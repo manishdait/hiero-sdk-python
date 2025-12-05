@@ -77,7 +77,7 @@ class _Executable(ABC):
         self.node_account_id = None
 
         # node_id account which the execution should run
-        self._nodes: List[AccountId] = []
+        self.node_account_ids: List[AccountId] = []
         self._node_index = 0
 
     @abstractmethod
@@ -168,6 +168,7 @@ class _Executable(ABC):
             ReceiptStatusError: If the operation fails with a receipt status error
         """
         # Determine maximum number of attempts from client or executable
+        print(f"Nodes {self.node_account_ids}")
         max_attempts = client.max_attempts
         current_backoff = self._min_backoff
         err_persistant = None
@@ -182,12 +183,12 @@ class _Executable(ABC):
                 current_backoff *= 2
                         
             # Set the node account id to the client's node account id
-            if len(self._nodes) == 0:
-                node = client.network.current_node
+            if self.node_account_ids:
+                selected_node_id = self._current_node()
+                node = client.network._get_node(selected_node_id)
             else:
-                current_node = self.current_node()
-                node = next((n for n in client.network.nodes if n._account_id == current_node), None)
-
+                node = client.network.current_node
+            
             self.node_account_id = node._account_id
   
             # Create a channel wrapper from the client's channel
@@ -216,6 +217,7 @@ class _Executable(ABC):
                 logger.trace(f"{self.__class__.__name__} status received", "nodeAccountID", self.node_account_id, "network", client.network.network, "state", execution_state.name, "txID", tx_id)
                 
                 # Handle the execution state
+                print(execution_state)
                 match execution_state:
                     case _ExecutionState.RETRY:
                         # If we should retry, wait for the backoff period and try again
@@ -232,8 +234,15 @@ class _Executable(ABC):
                         return self._map_response(response, self.node_account_id, proto_request)
             except grpc.RpcError as e:
                 # Save the error
+                print("Advancing to next client")
                 err_persistant = f"Status: {e.code()}, Details: {e.details()}"
-                node = client.network._select_node()
+                
+                if self.node_account_ids:
+                    next_node_id = self._advance_node()
+                    node = client.network._get_node(next_node_id)
+                else:
+                    node = client.network._select_node()
+    
                 logger.trace("Switched to a different node for the next attempt", "error", err_persistant, "from node", self.node_account_id, "to node", node._account_id)
                 continue
             
@@ -241,13 +250,17 @@ class _Executable(ABC):
         
         raise MaxAttemptsError("Exceeded maximum attempts for request", self.node_account_id, err_persistant)
     
-    def current_node(self):
-        if not self._nodes:
+    def _current_node(self) -> AccountId:
+        """Select node from node_account_ids."""
+        if not self.node_account_ids:
             raise ValueError("No nodes available to select.")
 
-        node = self._nodes[self._node_index]
-        self._node_index = (self._node_index + 1) % len(self._nodes)
-        return node
+        return self.node_account_ids[self._node_index]
+    
+    def _advance_node(self) -> AccountId:
+        """Advance the node_index to next index"""
+        self._node_index = (self._node_index + 1) % len(self.node_account_ids)
+        return self.node_account_ids[self._node_index]
 
 def _delay_for_attempt(request_id: str, current_backoff: int, attempt: int, logger, error):
     """

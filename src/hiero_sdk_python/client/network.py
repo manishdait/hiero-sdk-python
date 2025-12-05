@@ -183,3 +183,11 @@ class Network:
         Return the configured mirror node address used for mirror queries.
         """
         return self.mirror_address
+
+    def _get_node(self, account_id: AccountId) -> Optional[_Node]:
+        """Return _Node for the account_id."""
+        for node in self.nodes:
+            if node._account_id == account_id:
+                return node
+        
+        return None

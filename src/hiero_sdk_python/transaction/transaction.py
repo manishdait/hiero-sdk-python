@@ -64,7 +64,7 @@ class Transaction(_Executable):
         self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
         # changed from int: 2_000_000 to Hbar: 0.02
         self._default_transaction_fee = Hbar(0.02)
-        self.operator_account_id = None  
+        self.operator_account_id = None
         self.batch_key: Optional[PrivateKey] = None
 
     def _make_request(self):
@@ -261,11 +261,16 @@ class Transaction(_Executable):
         if self.transaction_id is None:
             raise ValueError("Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id().")
         
-        if self.node_account_id is None:
+        if self.node_account_id is None and len(self.node_account_ids) == 0:
             raise ValueError("Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_id.")
         
-        # Build the transaction body for the single node
-        self._transaction_body_bytes[self.node_account_id] = self.build_transaction_body().SerializeToString()
+        # wrap the single node_account_id into the node_account_ids
+        if self.node_account_id:
+            self.node_account_ids = [self.node_account_id]
+        
+        # Build the transaction body for the selected node_ids
+        for node_account_id in self.node_account_ids:
+            self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
         
         return self
 
@@ -292,17 +297,24 @@ class Transaction(_Executable):
         # For each node, set the node_account_id and build the transaction body
         # This allows the transaction to be submitted to any node in the network
 
-        if self.batch_key is None:
-            for node in client.network.nodes:
-                self.node_account_id = node._account_id
-                self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
-        
-            # Set the node account id to the current node in the network
-            self.node_account_id = client.network.current_node._account_id
-        else:
+        if self.batch_key:
             # For Inner Transaction of batch transaction node_account_id=0.0.0
             self.node_account_id = AccountId(0,0,0)
             self._transaction_body_bytes[AccountId(0,0,0)] = self.build_transaction_body().SerializeToString()
+            return self
+        
+        if self.node_account_id:
+            self.node_account_ids = [self.node_account_id]
+        
+        # Build transaction_body_bytes fro the selected node_account_ids
+        if len(self.node_account_ids) != 0:
+            for node_id in self.node_account_ids:
+                self.node_account_id = node_id
+                self._transaction_body_bytes[node_id] = self.build_transaction_body().SerializeToString()
+        else:
+            for node in client.network.nodes:
+                self.node_account_id = node._account_id
+                self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
         
         return self
 
@@ -335,10 +347,6 @@ class Transaction(_Executable):
 
         if not self.is_signed_by(client.operator_private_key.public_key()):
             self.sign(client.operator_private_key)
-        
-        # Set the node_ids to used
-        for node in self._transaction_body_bytes.keys():
-            self._nodes.append(node)
         
         # Call the _execute function from executable.py to handle the actual execution
         response = self._execute(client)
@@ -769,7 +777,7 @@ class Transaction(_Executable):
             raise ValueError(f"Failed to import transaction class for type '{transaction_type}': {e}")
 
     @classmethod
-    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+    def _from_protobuf(cls, transaction_body: transaction_pb2.TransactionBody, body_bytes: bytes, sig_map):
         """
         Creates a transaction instance from protobuf components.
 
@@ -805,6 +813,8 @@ class Transaction(_Executable):
 
         if transaction.node_account_id:
             transaction._transaction_body_bytes[transaction.node_account_id] = body_bytes
+            # wrap single node_account_id to to node_account_id list
+            transaction.node_account_ids = [transaction.node_account_id]
 
         if sig_map and sig_map.sigPair:
             transaction._signature_map[body_bytes] = sig_map
