@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
 
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.hbar import Hbar
@@ -47,6 +48,17 @@ def test_before_execute_payment_not_required(query, mock_client):
     assert query.operator == mock_client.operator
     assert query.payment_amount is None
 
+def test_before_execute_payment_not_required_with_node_ids(query, mock_client):
+    """Test that _before_execute correctly respects node_account_ids when a list is provided"""
+    node_list = [AccountId(0,0,3), AccountId(0,0,4)]
+    query.node_account_ids = node_list
+
+    query._before_execute(mock_client)
+
+    assert query.node_account_ids == node_list
+    assert query.operator == mock_client.operator
+    assert query.payment_amount is None
+
 def test_before_execute_payment_required(query_requires_payment, mock_client):
     """Test _before_execute method setup for query that requires payment"""
     # get_cost() should return Hbar(2)
@@ -58,6 +70,29 @@ def test_before_execute_payment_required(query_requires_payment, mock_client):
     query_requires_payment._before_execute(mock_client)
     
     assert query_requires_payment.node_account_ids == []
+    assert query_requires_payment.operator == mock_client.operator
+    assert query_requires_payment.payment_amount.to_tinybars() == Hbar(2).to_tinybars()
+
+    # payment_amount is set, should not set payment_amount to 1 Hbars
+    mock_get_cost.return_value = Hbar(1)
+    query_requires_payment.get_cost = mock_get_cost
+    query_requires_payment._before_execute(mock_client)
+    
+    assert query_requires_payment.payment_amount.to_tinybars() == Hbar(2).to_tinybars()
+
+def test_before_execute_payment_required_with_node_ids(query_requires_payment, mock_client):
+    """Test that _before_execute correctly respects node_account_ids when a list is provided"""
+    # get_cost() should return Hbar(2)
+    node_account_ids = [AccountId(0,0,3), AccountId(0,0,4)]
+    mock_get_cost = MagicMock()
+    mock_get_cost.return_value = Hbar(2)
+    query_requires_payment.get_cost = mock_get_cost
+    query_requires_payment.node_account_ids = node_account_ids
+    
+    # payment_amount is None, should set payment_amount to 2 Hbars
+    query_requires_payment._before_execute(mock_client)
+    
+    assert query_requires_payment.node_account_ids == node_account_ids
     assert query_requires_payment.operator == mock_client.operator
     assert query_requires_payment.payment_amount.to_tinybars() == Hbar(2).to_tinybars()
 

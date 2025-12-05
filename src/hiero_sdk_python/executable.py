@@ -168,7 +168,6 @@ class _Executable(ABC):
             ReceiptStatusError: If the operation fails with a receipt status error
         """
         # Determine maximum number of attempts from client or executable
-        print(f"Nodes {self.node_account_ids}")
         max_attempts = client.max_attempts
         current_backoff = self._min_backoff
         err_persistant = None
@@ -182,7 +181,7 @@ class _Executable(ABC):
             if attempt > 0 and current_backoff < self._max_backoff:
                 current_backoff *= 2
                         
-            # Set the node account id to the client's node account id
+            # If node_account_ids are set by user
             if self.node_account_ids:
                 selected_node_id = self._current_node()
                 node = client.network._get_node(selected_node_id)
@@ -217,7 +216,6 @@ class _Executable(ABC):
                 logger.trace(f"{self.__class__.__name__} status received", "nodeAccountID", self.node_account_id, "network", client.network.network, "state", execution_state.name, "txID", tx_id)
                 
                 # Handle the execution state
-                print(execution_state)
                 match execution_state:
                     case _ExecutionState.RETRY:
                         # If we should retry, wait for the backoff period and try again
@@ -234,7 +232,6 @@ class _Executable(ABC):
                         return self._map_response(response, self.node_account_id, proto_request)
             except grpc.RpcError as e:
                 # Save the error
-                print("Advancing to next client")
                 err_persistant = f"Status: {e.code()}, Details: {e.details()}"
                 
                 if self.node_account_ids:
