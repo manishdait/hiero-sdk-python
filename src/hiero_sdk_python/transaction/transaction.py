@@ -1,5 +1,5 @@
 import hashlib
-from typing import Optional
+from typing import List, Optional, Union
 
 from typing import TYPE_CHECKING
 
@@ -554,6 +554,23 @@ class Transaction(_Executable):
         """
         self._require_not_frozen()
         self.transaction_id = transaction_id
+        return self
+
+    def set_node_account_ids(self, node_account_ids: List[AccountId]):
+        """
+        Sets the node_account_ids for the transaction.
+
+        Args:
+            node_account_ids (List[AccountId]): The node_account_ids to set.
+
+        Returns:
+            Transaction: The current transaction instance for method chaining.
+
+        Raises:
+            Exception: If the transaction has already been frozen.
+        """
+        self._require_not_frozen()
+        self.node_account_ids = node_account_ids
         return self
 
     def to_bytes(self):

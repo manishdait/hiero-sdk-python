@@ -33,7 +33,7 @@ def test_transaction_executes_successfully_with_node_account_ids(env):
     executor_key = env.operator_key
 
     tx = TopicCreateTransaction().set_memo("Test Topic Creation")
-    tx.node_account_ids = node_account_ids
+    tx.set_node_account_ids(node_account_ids)
     tx.freeze_with(executor_client) 
     tx.sign(executor_key)
     receipt = tx.execute(executor_client)
