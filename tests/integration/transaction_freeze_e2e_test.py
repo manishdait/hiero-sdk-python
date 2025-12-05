@@ -16,15 +16,31 @@ def test_transaction_executes_successfully(env):
 
     tx = TopicCreateTransaction().set_memo("Test Topic Creation")
     tx.freeze_with(executor_client) 
-    unsigned_bytes = tx.to_bytes()
-    
-    assert unsigned_bytes is not None
+    tx.sign(executor_key)
+    receipt = tx.execute(executor_client)
 
-    tx2 = Transaction.from_bytes(unsigned_bytes)    
-    assert tx2 is not None
+    # Verify that the transaction_bodys are generated for all nodes pressent in client network
+    assert len(tx._transaction_body_bytes) == len(env.client.network.nodes)
+    assert set(tx._transaction_body_bytes.keys()) == set(node._account_id for node in env.client.network.nodes)
 
-    tx2.sign(executor_key)
-    receipt = tx2.execute(executor_client)
+    assert receipt.status == ResponseCode.SUCCESS, "Transaction must execute successfully"
+
+@pytest.mark.integration
+def test_transaction_executes_successfully_with_node_account_ids(env):
+    """Test transaction can be executed successfully when node_account_ids are provided."""
+    node_account_ids = [AccountId(0,0,3), AccountId(0,0,4)]
+    executor_client = env.client
+    executor_key = env.operator_key
+
+    tx = TopicCreateTransaction().set_memo("Test Topic Creation")
+    tx.node_account_ids = node_account_ids
+    tx.freeze_with(executor_client) 
+    tx.sign(executor_key)
+    receipt = tx.execute(executor_client)
+
+    # Verify that the transaction_bodys are generated for the provided node_account_ids only
+    assert len(tx._transaction_body_bytes) == 2
+    assert set(tx._transaction_body_bytes.keys()) == set(node_account_ids)
 
     assert receipt.status == ResponseCode.SUCCESS, "Transaction must execute successfully"
 

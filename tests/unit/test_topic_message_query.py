@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from hiero_sdk_python.query.topic_message_query import TopicMessageQuery
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_id import TopicId
-from google.protobuf.timestamp_pb2 import Timestamp
 from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
 from hiero_sdk_python.hapi.services import timestamp_pb2 as hapi_timestamp_pb2
 

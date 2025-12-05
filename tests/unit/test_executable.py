@@ -302,6 +302,41 @@ def test_retriable_error_does_not_switch_node():
 
         assert client.network.current_node._account_id == AccountId(0, 0, 3), "Client should not switch node on retriable errors"
 
+def test_retriable_error_does_not_switch_node_with_node_account_ids():
+    """Test that a retriable error does not switch nodes when node_account_ids are set."""
+    busy_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.BUSY)
+    ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+    response_sequences = [[busy_response, ok_response, receipt_response]]
+    with mock_hedera_servers(response_sequences) as client, patch('time.sleep'):
+        transaction = (
+            AccountCreateTransaction()
+            .set_key(PrivateKey.generate().public_key())
+            .set_initial_balance(100_000_000)
+        )
+
+        transaction.node_account_ids = [
+            AccountId(0, 0, 3),
+            AccountId(0, 0, 4),
+        ]
+
+        try:
+            transaction.execute(client)
+        except (Exception, grpc.RpcError) as e:
+            pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
+
+        assert transaction.node_account_id  == AccountId(0, 0, 3), "Node Id should not switch node on retriable errors"
+
 def test_topic_create_transaction_retry_on_busy():
     """Test that TopicCreateTransaction retries on BUSY response."""
     # First response is BUSY, second is OK
@@ -427,6 +462,69 @@ def test_transaction_node_switching_body_bytes():
         # Verify we're now on the second node
         assert client.network.current_node._account_id == AccountId(0, 0, 4), "Client should have switched to the second node"
 
+def test_transaction_node_switching_body_bytes_with_node_ids():
+    """Test that execution switches nodes after receiving a non-retriable error when node_account_ids is used."""
+    ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
+    error = RealRpcError(grpc.StatusCode.UNAVAILABLE, "Test error")
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS
+            )
+        )
+    )
+
+    response_sequences = [
+        [error],
+        [ok_response, receipt_response],
+    ]
+
+    with mock_hedera_servers(response_sequences) as client, patch("time.sleep"):
+        transaction = (
+            AccountCreateTransaction()
+            .set_key(PrivateKey.generate().public_key())
+            .set_initial_balance(100_000_000)
+        )
+
+        transaction.node_account_ids = [
+            AccountId(0, 0, 3),
+            AccountId(0, 0, 4),
+        ]
+
+        transaction.freeze_with(client)
+        transaction.sign(client.operator_private_key)
+
+        client_node_id = client.network.current_node._account_id
+
+        for node_id in transaction.node_account_ids:
+            body = transaction._transaction_body_bytes[node_id]
+            assert body is not None
+
+            sig_map = transaction._signature_map[body]
+            assert sig_map is not None
+            assert len(sig_map.sigPair) == 1
+            assert (
+                sig_map.sigPair[0].pubKeyPrefix
+                == client.operator_private_key.public_key().to_bytes_raw()
+            )
+
+        try:
+            transaction.execute(client)
+        except Exception as e:
+            pytest.fail(f"Transaction execution should not raise, but raised: {e}")
+
+        # First attempt → node_account_ids[0] → fails
+        # Retry → switches to node_account_ids[1]
+        assert transaction.node_account_id == AccountId(0, 0, 4), "Executable should have switched to the second node from node_account_ids"
+
+        # Verify client current node changed
+        # Change due to get_recipt call when execute receive response
+        assert client.network.current_node._account_id != client_node_id
+
 def test_query_retry_on_busy():
     """
     Test query retry behavior when receiving BUSY response.
@@ -482,3 +580,53 @@ def test_query_retry_on_busy():
         assert balance.hbars.to_tinybars() == 100000000
         # Verify we switched to the second node
         assert client.network.current_node._account_id == AccountId(0, 0, 4), "Client should have switched to the second node"
+
+def test_query_retry_on_busy_with_node_account_ids():
+    """Test query retry through node_account_ids instead of client.network.current_node."""
+    busy_response = response_pb2.Response(
+        cryptogetAccountBalance=crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.BUSY
+            )
+        )
+    )
+
+    ok_response = response_pb2.Response(
+        cryptogetAccountBalance=crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            balance=100000000
+        )
+    )
+
+    response_sequences = [
+        [busy_response],
+        [ok_response],
+    ]
+
+    with mock_hedera_servers(response_sequences) as client, patch("time.sleep") as mock_sleep:
+        client_node_id = client.network.current_node._account_id
+
+        query = CryptoGetAccountBalanceQuery()
+        query.set_account_id(AccountId(0, 0, 1234))
+
+        # Explicit node list 
+        query.node_account_ids = [
+            AccountId(0, 0, 3),
+            AccountId(0, 0, 4),
+        ]
+
+        balance = query.execute(client)
+
+        assert mock_sleep.call_count == 1
+
+        assert balance.hbars.to_tinybars() == 100000000
+
+        # Verify rotation:
+        # After the first attempt (node_index=0 → AccountId(0,0,3)),
+        # _advance_node() should select next node, i.e. AccountId(0,0,4)
+        assert query.node_account_id == AccountId(0, 0, 4), "Executable should have switched to the second node in node_account_ids"
+        
+        # Verify client current node not changed
+        assert client.network.current_node._account_id == client_node_id
