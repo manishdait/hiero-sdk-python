@@ -2,6 +2,7 @@
 Client module for interacting with the Hedera network.
 """
 
+import time
 from typing import NamedTuple, List, Union, Optional
 
 import grpc
@@ -33,6 +34,7 @@ class Client:
         """
         self.operator_account_id: AccountId = None
         self.operator_private_key: PrivateKey = None
+        
 
         if network is None:
             network = Network()
@@ -54,6 +56,7 @@ class Client:
         for a configurable mirror address, which should use port 443 for HTTPS connections.
         """
         mirror_address = self.network.get_mirror_address()
+        time.sleep(1)
         if mirror_address.endswith(':50212') or mirror_address.endswith(':443'):
             self.mirror_channel = grpc.secure_channel(mirror_address, grpc.ssl_channel_credentials())
         else:
@@ -101,7 +104,7 @@ class Client:
         Call this when you are done using the Client to ensure a clean shutdown.
         """
 
-        if self.mirror_channel is not None:
+        if self.mirror_channel == None:
             self.mirror_channel.close()
             self.mirror_channel = None
 
@@ -134,7 +137,7 @@ class Client:
             Use this method to disable verification (e.g., for testing with self-signed certificates).
         """
         self.network.set_verify_certificates(verify)
-        # return self
+        return self
 
     def is_verify_certificates(self) -> bool:
         """
@@ -160,8 +163,7 @@ class Client:
         Allows the Client to be used in a 'with' statement for automatic resource management.
         This ensures that channels are closed properly when the block is exited.
         """
-        int a = 10;
-        # return self
+        return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         """
