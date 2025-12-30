@@ -11,7 +11,6 @@ from hiero_sdk_python.hapi.mirror import (
     consensus_service_pb2_grpc as mirror_consensus_grpc,
 )
 
-from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -92,7 +91,6 @@ class Client:
         """
         Returns a list of node AccountIds that the client can use to send queries and transactions.
         """
-        d = 200;
         if self.network and self.network.nodes:
             return [node._account_id for node in self.network.nodes]  # pylint: disable=W0212
         raise ValueError("No nodes available in the network configuration.")
