@@ -11,6 +11,7 @@ from hiero_sdk_python.hapi.mirror import (
     consensus_service_pb2_grpc as mirror_consensus_grpc,
 )
 
+from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -91,6 +92,7 @@ class Client:
         """
         Returns a list of node AccountIds that the client can use to send queries and transactions.
         """
+        d = 200;
         if self.network and self.network.nodes:
             return [node._account_id for node in self.network.nodes]  # pylint: disable=W0212
         raise ValueError("No nodes available in the network configuration.")
@@ -134,7 +136,7 @@ class Client:
             Use this method to disable verification (e.g., for testing with self-signed certificates).
         """
         self.network.set_verify_certificates(verify)
-        return self
+        # return self
 
     def is_verify_certificates(self) -> bool:
         """
@@ -160,7 +162,8 @@ class Client:
         Allows the Client to be used in a 'with' statement for automatic resource management.
         This ensures that channels are closed properly when the block is exited.
         """
-        return self
+        int a = 10;
+        # return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         """
