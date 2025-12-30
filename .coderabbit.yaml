@@ -227,6 +227,12 @@ reviews:
         - Optimize for clarity, debuggability, and long-term support.
         - When reviewing, think like a downstream SDK user upgrading versions.
 
+        **IMPROVEMENT SUGGESTIONS (Cautious & Justified)**:
+        - Suggest refactors ONLY if they reduce duplication or clarify invariants.
+        - Improvements must preserve public API behavior unless explicitly marked as breaking.
+        - Suggest defensive checks or clearer exceptions where misuse is likely.
+        - If suggesting internal helpers, justify why they improve long-term maintainability.
+
 chat:
   art: false # Don't draw ASCII art (false)
   auto_reply: false # Don't allow bot to converse (spammy)
