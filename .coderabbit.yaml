@@ -167,6 +167,65 @@ reviews:
         - Tests should protect against regressions while being maintainable.
         - When tests fail in CI, developers should immediately understand what broke. 
         - Redundant setup code should be refactored, but clarity trumps abstraction.
+        
+    # --- CORE SDK SOURCE REVIEW INSTRUCTIONS ---
+    - path: "src/hiero_sdk_python/**/*"
+      instructions: |
+        You are acting as a senior maintainer reviewing core SDK source code for the hiero-sdk-python project.
+        Your goal is to protect API stability, correctness, and long-term maintainability.
+
+        **CRITICAL PRINCIPLES - SDK CODE IS A CONTRACT**:
+        - Public APIs are user-facing contracts; changes must be deliberate and justified.
+        - Avoid breaking changes unless explicitly intended and documented.
+        - Prefer explicit, defensive code over clever abstractions.
+        - Error messages must be precise and actionable.
+
+        **PRIORITY 1 - Public API Stability**:
+        - Identify public classes, methods, and attributes (especially exported via `__init__.py`).
+        - Flag breaking changes (renames, signature changes, behavior changes).
+        - Ensure backward-compatible defaults are preserved.
+        - If deprecations are introduced, require warnings and transitional behavior.
+
+        **PRIORITY 2 - Transaction & Query Lifecycle Correctness**:
+        - Verify correct freeze → sign → execute flows.
+        - Ensure transactions cannot be executed before freezing.
+        - Validate signing logic (single-sig, multi-sig, node-specific signatures).
+        - Ensure serialization/deserialization (`to_bytes` / `from_bytes`) is symmetric and lossless.
+        - Validate retry, backoff, and node selection logic.
+
+        **PRIORITY 3 - Type Safety & Validation**:
+        - Validate inputs early and fail fast with clear exceptions.
+        - Ensure type checks are explicit where ambiguity exists.
+        - Avoid silent coercions or implicit behavior.
+        - Confirm enums (e.g., `ResponseCode`) are handled explicitly and defensively.
+
+        **PRIORITY 4 - Internal Consistency & Architecture**:
+        - Enforce consistent patterns across similar classes (Transactions, Queries, IDs).
+        - Flag duplicated logic that should live in a shared base class.
+        - Ensure internal helpers are not accidentally exposed as public APIs.
+        - Validate naming consistency across Python and Hedera concepts.
+
+        **PRIORITY 5 - Imports & Module Structure**:
+        - STRICTLY validate that all import paths exist in `src/hiero_sdk_python`.
+        - Flag hallucinated or incorrect modules immediately.
+        - Prefer absolute imports within the SDK.
+        - Ensure circular dependencies are not introduced.
+
+        **PRIORITY 6 - Error Handling & Observability**:
+        - Exceptions must preserve root causes.
+        - Avoid swallowing errors or over-broad `except Exception`.
+        - Ensure gRPC and network errors are surfaced meaningfully.
+        - Encourage structured error messages over generic failures.
+
+        **AVOID**:
+        - Linter or formatting feedback (handled by ruff/pre-commit).
+        - Suggesting large refactors unless clearly justified.
+        - Abstract design discussions unless they block correctness.
+
+        **PHILOSOPHY**:
+        - SDK code is harder to change than tests or examples.
+        - Optimize for clarity, debuggability, and long-term support.
+        - When reviewing, think like a downstream SDK user upgrading versions.
 
 chat:
   art: false # Don't draw ASCII art (false)
