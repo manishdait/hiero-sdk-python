@@ -22,11 +22,13 @@ class _HederaTrustManager:
 
     def __init__(self, cert_hash: Optional[bytes], verify_certificate: bool):
         """
-        Initialize the trust manager.
+        Initialize a Hedera-style trust manager that stores the expected certificate hash.
         
-        Args:
-            cert_hash: Expected certificate hash from address book (UTF-8 encoded hex string)
-            verify_certificate: Whether to enforce certificate verification
+        If `cert_hash` is None or empty and `verify_certificate` is True, raises ValueError because verification cannot proceed without an address book entry. If `cert_hash` is provided, it is normalized to a lowercase hexadecimal string: the code first attempts to decode the bytes as a UTF-8 string and strips an optional "0x" prefix; on Unicode decode failure it falls back to the hex representation of the bytes.
+        
+        Parameters:
+            cert_hash: Expected certificate hash from the address book. May be UTF-8 encoded hex (optionally starting with "0x") or raw bytes.
+            verify_certificate: Whether certificate verification is required; when True and no cert_hash is available, initialization fails with ValueError.
         """
         if cert_hash is None or len(cert_hash) == 0:
             if verify_certificate:
@@ -46,16 +48,18 @@ class _HederaTrustManager:
 
     def check_server_trusted(self, pem_cert: bytes) -> bool:
         """
-        Validate a server certificate by comparing its hash to the expected hash.
+        Validate the server certificate by comparing its SHA-384 hash against the configured expected hash.
         
-        Args:
-            pem_cert: PEM-encoded certificate bytes
-            
+        If no expected hash is configured, the certificate is accepted. Raises ValueError when the computed hash does not match the expected hash.
+        
+        Parameters:
+            pem_cert (bytes): PEM-encoded certificate bytes.
+        
         Returns:
-            True if certificate hash matches expected hash
-            
+            bool: True if the certificate is trusted.
+        
         Raises:
-            ValueError: If certificate hash doesn't match expected hash
+            ValueError: If the computed certificate hash does not match the expected hash.
         """
         if self.cert_hash is None:
             return True
@@ -77,12 +81,12 @@ class _Node:
 
     def __init__(self, account_id: AccountId, address: str, address_book: NodeAddress):
         """
-        Initialize a new Node instance.
+        Initialize a Node with its account identifier, network address, and address book entry.
         
-        Args:
-            account_id (AccountId): The account ID of the node.
-            address (str): The address of the node.
-            min_backoff (int): The minimum backoff time in seconds.
+        Parameters:
+            account_id (AccountId): The node's Hedera account identifier.
+            address (str): The node's network address string (used to construct the managed address).
+            address_book (NodeAddress): The address book entry associated with this node.
         """
 
         self._account_id: AccountId = account_id
@@ -106,10 +110,15 @@ class _Node:
 
     def _get_channel(self):
         """
-        Get the channel for this node.
+        Return the node's gRPC channel, creating and caching it if necessary.
+        
+        If the node is configured for transport security, the channel is created with the node's PEM certificate (either provided root certificates or fetched from the server) and TLS credentials; certificate validation is performed when verification is enabled. For insecure nodes, an insecure channel is created.
         
         Returns:
-            _Channel: The channel for this node.
+            _Channel: The cached or newly created channel for this node.
+        
+        Raises:
+            ValueError: If transport security is required but no certificate is available.
         """
         if self._channel:
             return self._channel
@@ -145,7 +154,12 @@ class _Node:
 
     def _apply_transport_security(self, enabled: bool):
         """
-        Update the node's address to use secure or insecure transport.
+        Switches the node's address between secure and insecure transport modes.
+        
+        Closes any existing channel and updates the node's managed address to the secure form when enabling transport security or to the insecure form when disabling it. No action is taken if the address is already in the requested mode.
+        
+        Parameters:
+            enabled (bool): True to enable transport security, False to disable it.
         """
         if enabled and self._address._is_transport_security():
             return

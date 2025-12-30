@@ -85,22 +85,19 @@ class Transaction(_Executable):
             node_id, 
             proto_request):
         """
-        Implements the Executable._map_response method to create a TransactionResponse.
-
-        This method creates a TransactionResponse object with information about the
-        executed transaction, including the transaction ID, node ID, and transaction hash.
-
-        Args:
-            response: The response from the network
-            node_id: The ID of the node that processed the request
-            proto_request: The protobuf request that was sent
-
-        Returns:
-            TransactionResponse: The transaction response object
-
-        Raises:
-            ValueError: If proto_request is not a Transaction
-        """
+            Create a TransactionResponse containing the transaction ID, node ID, and SHA-384 hash of the signed transaction bytes.
+            
+            Parameters:
+                response: The network response proto (unused for constructing the TransactionResponse).
+                node_id: The ID of the node that processed the request.
+                proto_request: The Transaction protobuf that was sent; its `signedTransactionBytes` are hashed.
+            
+            Returns:
+                TransactionResponse: Object populated with `transaction_id`, `node_id`, and `hash` (SHA-384 of `signedTransactionBytes`).
+            
+            Raises:
+                TypeError: If `proto_request` is not a `transaction_pb2.Transaction`.
+            """
         if not isinstance(proto_request, transaction_pb2.Transaction):
             raise TypeError(f"Expected Transaction but got {type(proto_request)}")
 
@@ -239,21 +236,15 @@ class Transaction(_Executable):
 
     def freeze(self):
         """
-        Freezes the transaction by building the transaction body and setting necessary IDs.
-
-        This method requires that transaction_id and node_account_id are already set manually.
-        Use freeze_with(client) if you want to use the client to set these values automatically.
-
-        IMPORTANT: This method only builds the transaction body for the single node specified
-        in node_account_id. If you later execute this transaction and the network needs to retry
-        with a different node, the transaction will fail. For production use with automatic node
-        failover, use freeze_with(client) instead.
-
+        Freeze the transaction by building and storing node-specific transaction body bytes.
+        
+        This stores serialized transaction body bytes in the transaction's internal per-node map using either the single `node_account_id` (if set) or every `node_account_ids` entry. The transaction must have a `transaction_id` and at least one node account id (either `node_account_id` or a non-empty `node_account_ids`) before calling this method.
+        
         Returns:
             Transaction: The current transaction instance for method chaining.
-
+        
         Raises:
-            ValueError: If transaction_id or node_account_id are not set.
+            ValueError: If `transaction_id` is not set or neither `node_account_id` nor `node_account_ids` are provided.
         """
         if self._transaction_body_bytes:
             return self
@@ -278,16 +269,16 @@ class Transaction(_Executable):
 
     def freeze_with(self, client):
         """
-        Freezes the transaction by building the transaction body and setting necessary IDs.
-
-        Args:
-            client (Client): The client instance to use for setting defaults.
-
+        Freeze the transaction by building and storing per-node transaction bodies using the provided client's network.
+        
+        If the transaction is already frozen this is a no-op. Behavior depends on transaction state:
+        - If `batch_key` is set, builds a single inner (batched) body for AccountId(0,0,0).
+        - If `node_account_id` is set, builds and stores the body for that single node.
+        - If `node_account_ids` is non-empty, builds and stores bodies for each listed node.
+        - Otherwise, builds and stores bodies for every node in `client.network`.
+        
         Returns:
-            Transaction: The current transaction instance for method chaining.
-
-        Raises:
-            Exception: If required IDs are not set.
+            The current transaction instance.
         """
         if self._transaction_body_bytes:
             return self
@@ -328,20 +319,16 @@ class Transaction(_Executable):
 
     def execute(self, client):
         """
-        Executes the transaction on the Hedera network using the provided client.
-
-        This function delegates the core logic to `_execute()` and `get_receipt()`, and may propagate exceptions raised by it.
-
-        Args:
-            client (Client): The client instance to use for execution.
-
+        Execute the transaction through the provided Client and return its receipt.
+        
         Returns:
-            TransactionReceipt: The receipt of the transaction.
-
+            TransactionReceipt: The receipt for the executed transaction.
+        
         Raises:
-            PrecheckError: If the transaction/query fails with a non-retryable error
-            MaxAttemptsError: If the transaction/query fails after the maximum number of attempts
-            ReceiptStatusError: If the query fails with a receipt status error
+            ValueError: If the transaction is batchified but not running inside a BatchTransaction.
+            PrecheckError: If the network returns a non-retryable precheck error.
+            MaxAttemptsError: If execution fails after the maximum retry attempts.
+            ReceiptStatusError: If the receipt indicates a terminal status error.
         """
         from hiero_sdk_python.transaction.batch_transaction import BatchTransaction
         if self.batch_key and not isinstance(self, (BatchTransaction)):
@@ -419,13 +406,13 @@ class Transaction(_Executable):
 
     def build_base_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
-        Builds the base transaction body including common fields.
-
+        Builds the base TransactionBody populated with common transaction fields.
+        
         Returns:
-            TransactionBody: The protobuf TransactionBody message with common fields set.
-
+            transaction_pb2.TransactionBody: A TransactionBody protobuf with transactionID, nodeAccountID, transactionFee, transactionValidDuration, generateRecord, memo, and max_custom_fees populated (and batch_key when set).
+        
         Raises:
-            ValueError: If required IDs are not set.
+            ValueError: If neither transaction_id nor operator_account_id is set, or if no node account ID is available.
         """
         if self.transaction_id is None:
                 if self.operator_account_id is None:

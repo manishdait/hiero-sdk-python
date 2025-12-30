@@ -30,7 +30,15 @@ OPERATOR_KEY = os.getenv("OPERATOR_KEY")
 
 def setup_client():
     """
-    Initialize and return the primary Hedera client using operator credentials.
+    Create and return a Hedera Client configured with the operator credentials from environment variables.
+    
+    Initializes a Client for the configured network, sets its operator account and key, and returns the configured client instance.
+    
+    Returns:
+    	client (Client): A Hedera Client configured with the operator account.
+    
+    Raises:
+    	RuntimeError: If OPERATOR_ID or OPERATOR_KEY are not set, or if client initialization fails.
     """
     if not OPERATOR_ID or not OPERATOR_KEY:
         raise RuntimeError("OPERATOR_ID or OPERATOR_KEY not set in .env")
@@ -55,7 +63,10 @@ def setup_client():
 
 def create_client_without_operator():
     """
-    Create a client without an operator.
+    Create a Hedera SDK client for the configured network without assigning an operator.
+    
+    Returns:
+        Client: A Hedera `Client` instance configured for NETWORK_NAME with no operator set.
     """
     secondary_client = Client(Network(NETWORK_NAME))
 
@@ -63,8 +74,14 @@ def create_client_without_operator():
 
 def build_unsigned_bytes(executor_client, secondary_client):
     """
-    Build a TopicCreateTransaction, manually freeze it using a secondary client,
-    and return the serialized unsigned transaction bytes.
+    Constructs a TopicCreateTransaction, freezes it with the provided client that has no operator, and produces the serialized unsigned transaction.
+    
+    Parameters:
+        executor_client (Client): Client whose operator account is used to generate the TransactionId.
+        secondary_client (Client): Client without an operator used to perform the freeze.
+    
+    Returns:
+        bytes: Serialized unsigned transaction bytes ready for signing and submission.
     """
     tx_id = TransactionId.generate(executor_client.operator_account_id)
 
@@ -84,8 +101,14 @@ def build_unsigned_bytes(executor_client, secondary_client):
 
 def sign_and_execute(unsigned_bytes, executor_client):
     """
-    Deserialize a transaction from bytes, sign it using the executor client,
-    and execute it on the Hedera network.
+    Sign a deserialized transaction with the executor's operator key and submit it to the Hedera network.
+    
+    Parameters:
+        unsigned_bytes (bytes): Serialized transaction bytes representing an unsigned transaction.
+        executor_client (Client): Hedera client whose operator credentials will sign and execute the transaction.
+    
+    Raises:
+        RuntimeError: If deserialization, signing, or execution fails, or if the transaction receipt status is not SUCCESS.
     """
     try:
         tx = Transaction.from_bytes(unsigned_bytes)
@@ -107,13 +130,9 @@ def sign_and_execute(unsigned_bytes, executor_client):
 
 def main():
     """
-    1. Setup an executor client.
-    2. Create a secondary client without an operator.
-    3. Create a Transaction and explicitly:
-        - Set the TransactionId
-        - Call `freezeWith()` to build the TransactionBody for the specified node with client without operator
-        - Serialize the unsigned transaction to bytes
-    4. Deserialize the transaction from bytes, sign it, and execute it on the network.
+    Run the end-to-end example: build an unsigned TopicCreate transaction, sign it with the operator, and execute it on the Hedera network.
+    
+    Performs these steps: set up the executor client with operator credentials, create a secondary client without an operator to freeze and serialize the unsigned transaction, then deserialize, sign, and execute the transaction. Exits the process with status 1 on error.
     """
     try:
         executor_client = setup_client()
