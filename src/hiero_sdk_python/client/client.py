@@ -42,6 +42,9 @@ class Client:
         self.mirror_stub: mirror_consensus_grpc.ConsensusServiceStub = None
 
         self.max_attempts: int = 10
+        # Default grpc deadline 10sec
+        self._request_timeout: int = 2 * 60
+        self._grpc_deadline: int = 10
 
         self._init_mirror_stub()
 
@@ -154,6 +157,27 @@ class Client:
         Retrieve the configured root certificates for TLS connections.
         """
         return self.network.get_tls_root_certificates()
+    
+    def set_request_timeout(self, request_timeout: int) -> "Client":
+        if request_timeout <= 0:
+            raise ValueError("request_timeout must be a positive number");
+        if request_timeout <= self._grpc_deadline: 
+            pass
+        
+        self._request_timeout = request_timeout
+        return self
+    
+    def set_grpc_deadline(self, grpc_deadline: int) -> "Client":
+        """
+        Set the gRPC request timeout for this client.
+        """
+        if grpc_deadline <= 0:
+            raise ValueError("grpc_deadline must be a positive number")
+        if grpc_deadline >= self._request_timeout:
+            pass
+
+        self._grpc_deadline = grpc_deadline
+        return self
 
     def __enter__(self) -> "Client":
         """
