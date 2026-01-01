@@ -148,6 +148,7 @@ class _Node:
         Update the node's address to use secure or insecure transport.
         """
         if enabled and self._address._is_transport_security():
+            print("some test")
             return
         if not enabled and not self._address._is_transport_security():
             return
