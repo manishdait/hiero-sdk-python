@@ -1,238 +1,236 @@
 language: "en-US" # USA English
-# Set up means coderabbit should review PRs but only provide one high level walkthrough, collapsed
-# It should not state preliminary information like: getting ready to review, draw a picture
-# It should not state additional information like: related issues, PRs, suggest reviewers
-# It should not continue a casual conversation with users that reply to it
 
-# Only documents non-default options:
+# CodeRabbit is used in MANUAL, COMMENT-TRIGGERED mode.
+# There are NO automatic PR reviews.
+# Reviews apply ONLY to new commits (incremental by design).
+# A collapsed walkthrough may be produced when explicitly triggered.
+
 reviews:
-  profile: "assertive" # Assertive profile yields more feedback, that may be considered nitpicky.
-  high_level_summary: false # Do not summarise a pull request first as there is a walkthrough
-  review_status: false # Do not state what kind of review as performed or why (spammy)
-  commit_status: false # Do not state the review is in progress (spammy)
-  collapse_walkthrough: true # Provide a walkthrough for reviewers, but collapse it (users shouldn't use this)
-  related_issues: false # Do not suggest related issues (spammy)
-  related_prs: false # Do not suggest related PRs (spammy)
-  suggested_labels: false # Do not suggest labels for the PR (spammy)
-  suggested_reviewers: false # Do not suggest reviewers for the PR (spammy)
-  in_progress_fortune: false # Do not stall time with a message (spammy)
-  poem: false # Do not write a literal poem (spammy)
-  enable_prompt_for_ai_agents: false # Disable prompts for AI agents (spammy)
+  profile: "assertive" # More feedback, may be nitpicky (intentional for SDKs)
+
+  # Disable spammy / conversational behavior
+  high_level_summary: false
+  review_status: false
+  commit_status: false
+  in_progress_fortune: false
+  poem: false
+  related_issues: false
+  related_prs: false
+  suggested_labels: false
+  suggested_reviewers: false
+  enable_prompt_for_ai_agents: false
+
+  # Walkthrough behavior
+  collapse_walkthrough: true
+
+  # IMPORTANT: manual review only
+  auto: false
+  auto_comment: false
 
   path_instructions:
-    # --- CUSTOM INSTRUCTIONS FOR EXAMPLES DIRECTORY ---
+    # =====================================================
+    # EXAMPLES
+    # =====================================================
     - path: "examples/**/*"
       instructions: |
-        You are acting as a senior maintainer reviewing SDK examples. Your goal is to ensure examples work verbatim for users who copy-paste them.
+        You are acting as a senior maintainer reviewing SDK examples.
+        Examples must work verbatim for users who copy-paste them.
 
-        **Priority 1 - Correctness**: 
-        - Verify transaction lifecycle chain (construction -> freeze_with -> sign -> execute).
-        - Ensure `freeze_with(client)` is called BEFORE signing.
-        - Validate that methods referenced actually exist in the `hiero_sdk_python` codebase.
-        - Ensure response validation checks `receipt.status` against `ResponseCode` enums (e.g., `ResponseCode.SUCCESS`).
+        PRIORITY 1 — Correctness:
+        - Verify transaction lifecycle: construct → freeze_with → sign → execute.
+        - `freeze_with(client)` MUST be called before signing.
+        - Ensure all referenced methods exist in `hiero_sdk_python`.
+        - Validate receipts against `ResponseCode` enums (e.g., `ResponseCode.SUCCESS`).
 
-        **Priority 2 - Transaction Lifecycle**: 
-        - Check method chaining logic.
-        - Verify correct signing order (especially for multi-sig).
+        PRIORITY 2 — Transaction Usage:
         - Ensure explicit `.execute(client)` calls.
-        - Verify response property extraction (e.g., using `.token_id`, `.account_id`, `.serial_numbers`).
-        - Ensure error handling uses `ResponseCode(receipt.status).name` for clarity.
+        - Verify correct signing order (especially multi-sig).
+        - Validate extraction of response properties (`token_id`, `account_id`, `serial_numbers`).
+        - Error handling should use `ResponseCode(receipt.status).name`.
 
-        **Priority 3 - Naming & Clarity**: 
-        - Enforce role-based naming: `operator_id`/`_key`, `treasury_account_id`/`_key`, `receiver_id`/`_key`.
-        - Use `_id` suffix for AccountId and `_key` suffix for PrivateKey variables.
-        - Validate negative examples explicitly check for failure codes (e.g., `TOKEN_HAS_NO_PAUSE_KEY`).
-        - Ensure logical top-to-bottom flow without ambiguity.
+        PRIORITY 3 — Naming & Clarity:
+        - Role-based naming: `operator_id` / `operator_key`, `treasury_account_id`, etc.
+        - Use `_id` for IDs and `_key` for PrivateKey variables.
+        - Negative examples must explicitly assert failure codes.
+        - Maintain clear, top-to-bottom flow.
 
-        **Priority 4 - Consistency**: 
-        - Verify standard patterns: `def main()`, `if __name__ == "__main__":`, `load_dotenv()`.
-        - **IMPORT RULES**: 
-          1. Accept both top-level imports (e.g., `from hiero_sdk_python import PrivateKey`) and fully qualified imports (e.g., `from hiero_sdk_python.crypto.private_key import PrivateKey`).
-          2. STRICTLY validate that the import path actually exists in the project structure. Compare against other files in `/examples` or your knowledge of the SDK file tree.
-          3. Flag hallucinations immediately (e.g., `hiero_sdk_python.keys` does not exist).
-        - Check for `try-except` blocks with `sys.exit(1)` for critical failures.
+        PRIORITY 4 — Imports:
+        - Allow top-level OR fully-qualified imports.
+        - STRICTLY verify import paths exist in `src/hiero_sdk_python`.
+        - Flag hallucinated modules immediately.
 
-        **Priority 5 - User Experience**: 
-        - Ensure comments explain SDK usage patterns (for users, not contributors).
-        - Avoid nitpicking functional code.
-        - Suggest type hints or docstrings only if they significantly improve clarity.
+        PHILOSOPHY:
+        - Examples are user-facing documentation.
+        - Prefer explicitness over brevity.
+        - Avoid lint-only suggestions.
 
-        **Philosophy**: 
-        - Examples are copied by users - prioritize explicitness over brevity.
-        - Avoid suggestions that `ruff` or linters would catch.
-        - Be concise, technical, and opinionated.
-        - Flag out-of-scope improvements as potential new issues rather than blocking.
-
-    # --- UNIT TESTS REVIEW INSTRUCTIONS ---
+    # =====================================================
+    # UNIT TESTS
+    # =====================================================
     - path: "tests/unit/**/*"
       instructions: |
-        You are acting as a senior maintainer reviewing unit tests for the hiero-sdk-python project.  Your goal is to ensure tests are extensive, deterministic, and protect against breaking changes.
+        You are reviewing unit tests for a public SDK.
 
-        **CRITICAL PRINCIPLES - Tests Must Fail Loudly & Deterministically**:
-        - Tests must provide useful error messages when they fail for future debugging.
-        - No `print()` statements - use assertions with descriptive messages.
-        - No timing-dependent or unseeded random assertions.
-        - No network calls or external dependencies (unit tests are isolated).
-        - No unjustified TODOs or skipped tests without tracking issues.
+        CORE RULES:
+        - Tests must be deterministic and fail loudly.
+        - No network calls.
+        - No `print()` statements.
+        - No unseeded randomness.
 
-        **PRIORITY 1 - Protect Against Breaking Changes**:
-        - Assert public attributes exist (e.g., `assert hasattr(obj, 'account_id')`).
-        - Assert return types where relevant (e.g., `assert isinstance(result, AccountId)`).
-        - Assert fluent setters return `self` (e.g., `assert tx.set_memo("test") is tx`).
-        - Assert backward-compatible defaults are maintained. 
-        - If a breaking change is introduced, tests must assert deprecation behavior and test old behavior until removal.
+        PRIORITY 1 — Breaking Change Protection:
+        - Assert public attributes and return types.
+        - Assert fluent setters return `self`.
+        - Preserve backward-compatible defaults.
+        - Deprecations must be explicitly tested.
 
-        **PRIORITY 2 - Constructor & Setter Behavior**:
-        - Test constructor behavior with valid inputs, edge cases, and invalid inputs.
-        - Test setter behavior including method chaining (fluent interface).
-        - Verify that setters validate input and raise appropriate exceptions.
-        - Test that getters return expected values after construction/setting.
+        PRIORITY 2 — Constructors & Setters:
+        - Test valid, invalid, and edge-case inputs.
+        - Ensure validation raises clear exceptions.
 
-        **PRIORITY 3 - Comprehensive Coverage**: 
-        - Unit tests should be extensive - test even if we don't expect users to use it currently.
-        - Cover happy paths AND unhappy paths/edge cases.
-        - Test boundary conditions, null/None values, empty collections, etc.
-        - Avoid brittle ordering assertions unless order is part of the contract. 
+        PRIORITY 3 — Coverage:
+        - Cover happy and unhappy paths.
+        - Avoid brittle ordering unless contractual.
 
-        **PRIORITY 4 - No Mocks for Non-Existent Modules**:
-        - All imports must reference actual SDK modules - no hallucinated paths.
-        - Validate import paths against the actual `src/hiero_sdk_python` structure.
-        - Mocks should only be used for external dependencies, not SDK internals.
+        PRIORITY 4 — Imports:
+        - No mocks for non-existent SDK modules.
+        - Validate import paths against actual structure.
 
-        **PRIORITY 5 - Test Framework Philosophy**:
-        - Prefer repetitive but clear tests over abstracted helper functions.
-        - Some core functionality may warrant helper files (considered an exception).
-        - Discourage custom helper functions; prefer pytest fixtures when shared setup is needed. 
-        - Prefer testing real functionality over mocked behavior.
+        PHILOSOPHY:
+        - Clarity > DRY.
+        - Tests protect future SDK users.
 
-        **AVOID**:
-        - Linter or formatting feedback (leave that to ruff/pre-commit).
-        - Nitpicking minor stylistic issues unless they impact maintainability.
-        - Overly abstracted test helpers that obscure what's being tested. 
-
-        **PHILOSOPHY**:  
-        - Unit tests protect our future selves - be defensive and forward-looking.
-        - Tests should be readable by SDK developers:  clear names, brief docstrings, key inline comments.
-        - When tests fail, we should immediately know what broke and why.
-    
-    # --- INTEGRATION TESTS REVIEW INSTRUCTIONS ---
+    # =====================================================
+    # INTEGRATION TESTS
+    # =====================================================
     - path: "tests/integration/**/*"
       instructions: |
-        You are acting as a senior maintainer reviewing integration tests for the hiero-sdk-python project. Your goal is to ensure end-to-end tests validate real network behavior safely and deterministically.
+        You are reviewing integration tests validating real network behavior.
 
-        **CRITICAL PRINCIPLES - Safety & Diagnosability**:
-        - **Prioritize safety**: No implicit or default mainnet usage.
-        - Secrets and credentials must be injected safely (env vars, not hardcoded).
-        - Test failures must be diagnosable with clear error messages.
-        - Tests must assert observable network behavior, not just `SUCCESS`.
-        - Failure-path tests must assert specific `ResponseCode` values (e.g., `TOKEN_HAS_NO_PAUSE_KEY`).
+        SAFETY:
+        - No implicit mainnet usage.
+        - Credentials must come from environment variables.
+        - Failures must be diagnosable.
 
-        **PRIORITY 1 - End-to-End Behavior**:
-        - Tests should be end-to-end:  construct → freeze → sign → execute → verify.
-        - Validate resulting balances, ownership, and state changes (not just transaction success).
-        - Assert transaction receipts contain expected data (IDs, serial numbers, etc.).
-        - Verify network state after operations (e.g., account balance changed, token transferred).
+        PRIORITY 1 — End-to-End Validation:
+        - Full lifecycle: construct → freeze → sign → execute → verify.
+        - Assert resulting state, not just SUCCESS.
+        - Validate IDs, balances, ownership, allowances.
 
-        **PRIORITY 2 - Test Structure & Maintainability**:
-        - One major behavior per test (clear focus).
-        - Tests should be readable:  clear names, brief docstrings, key inline comments.
-        - Minimal abstraction layers - prefer clarity over DRY.
-        - Is the file too monolithic? Flag if tests should be split into smaller modules. 
-        - Are helper functions good candidates for pytest fixtures or shared utilities?
+        PRIORITY 2 — Structure:
+        - One major behavior per test.
+        - Readable names, brief docstrings.
+        - Minimal abstraction.
 
-        **PRIORITY 3 - Isolation & Cleanup**:
-        - Local account creation over operator reuse (avoid state pollution).
-        - Are accounts, tokens, and allowances properly cleaned up to avoid state leakage?
-        - Recommend teardown strategies or fixture scoping improvements. 
-        - Tests should not depend on execution order (avoid brittle assumptions).
+        PRIORITY 3 — Isolation:
+        - Avoid state leakage.
+        - Recommend teardown or fixture improvements where needed.
 
-        **PRIORITY 4 - Assertions & Coverage**:
-        - Do tests validate only success/failure, or also assert resulting state? 
-        - Suggest additional assertions that would strengthen correctness (balances, allowances, ownership).
-        - Cover happy paths AND unhappy paths (e.g., invalid spender, revoked allowance, insufficient balance).
-        - Avoid timing-based or flaky assumptions.
+        PHILOSOPHY:
+        - Reliable, safe, maintainable network tests.
 
-        **PRIORITY 5 - Observability & Debugging**:
-        - Could structured logging or transaction metadata improve debugging?
-        - Suggest capturing allowance values, transaction IDs, and balances in logs.
-        - Ensure error messages provide context for failure diagnosis. 
-
-        **AVOID**:
-        - Linter or formatting feedback.
-        - Overly abstracted helpers that obscure what's being tested.
-        - Timing-dependent assertions (use explicit waits or retries if needed).
-
-        **PHILOSOPHY**: 
-        - Integration tests validate real network behavior - they must be reliable and safe.
-        - Tests should protect against regressions while being maintainable.
-        - When tests fail in CI, developers should immediately understand what broke. 
-        - Redundant setup code should be refactored, but clarity trumps abstraction.
-        
-    # --- CORE SDK SOURCE REVIEW INSTRUCTIONS ---
+    # =====================================================
+    # CORE SDK — GLOBAL RULES
+    # =====================================================
     - path: "src/hiero_sdk_python/**/*"
       instructions: |
-        You are acting as a senior maintainer reviewing core SDK source code for the hiero-sdk-python project.
-        Your goal is to protect API stability, correctness, and long-term maintainability.
+        This is a public Python SDK.
+        Code under `src/hiero_sdk_python` is a long-term compatibility contract.
 
-        **CRITICAL PRINCIPLES - SDK CODE IS A CONTRACT**:
-        - Public APIs are user-facing contracts; changes must be deliberate and justified.
-        - Avoid breaking changes unless explicitly intended and documented.
-        - Prefer explicit, defensive code over clever abstractions.
-        - Error messages must be precise and actionable.
+        CORE PRINCIPLE — SDK CODE IS A CONTRACT:
+        - Public APIs are hard to change.
+        - Any breaking change MUST be flagged.
+        - Prefer explicit, defensive code.
+        - Errors must be precise and actionable.
 
-        **PRIORITY 1 - Public API Stability**:
-        - Identify public classes, methods, and attributes (especially exported via `__init__.py`).
-        - Flag breaking changes (renames, signature changes, behavior changes).
-        - Ensure backward-compatible defaults are preserved.
-        - If deprecations are introduced, require warnings and transitional behavior.
+        PRIORITY 1 — Public API Stability:
+        - Identify public classes, functions, and attributes.
+        - Pay attention to exports via `__init__.py`.
+        - Flag renames, signature changes, default changes, or behavior changes.
+        - Deprecations require warnings and transitional behavior.
 
-        **PRIORITY 2 - Transaction & Query Lifecycle Correctness**:
-        - Verify correct freeze → sign → execute flows.
-        - Ensure transactions cannot be executed before freezing.
-        - Validate signing logic (single-sig, multi-sig, node-specific signatures).
-        - Ensure serialization/deserialization (`to_bytes` / `from_bytes`) is symmetric and lossless.
-        - Validate retry, backoff, and node selection logic.
+        PRIORITY 2 — Lifecycle Correctness:
+        - Transactions: freeze → sign → execute.
+        - Queries must NOT follow transaction lifecycles.
+        - Serialization (`to_bytes` / `from_bytes`) must be symmetric and lossless.
 
-        **PRIORITY 3 - Type Safety & Validation**:
-        - Validate inputs early and fail fast with clear exceptions.
-        - Ensure type checks are explicit where ambiguity exists.
-        - Avoid silent coercions or implicit behavior.
-        - Confirm enums (e.g., `ResponseCode`) are handled explicitly and defensively.
+        PRIORITY 3 — Type Safety:
+        - Fail fast on invalid input.
+        - Avoid silent coercions.
+        - Handle enums defensively.
 
-        **PRIORITY 4 - Internal Consistency & Architecture**:
-        - Enforce consistent patterns across similar classes (Transactions, Queries, IDs).
-        - Flag duplicated logic that should live in a shared base class.
-        - Ensure internal helpers are not accidentally exposed as public APIs.
-        - Validate naming consistency across Python and Hedera concepts.
+        PRIORITY 4 — Architecture:
+        - Enforce consistent patterns across modules.
+        - Avoid duplicated logic.
+        - Prevent internal helpers from becoming public APIs.
 
-        **PRIORITY 5 - Imports & Module Structure**:
-        - STRICTLY validate that all import paths exist in `src/hiero_sdk_python`.
-        - Flag hallucinated or incorrect modules immediately.
-        - Prefer absolute imports within the SDK.
-        - Ensure circular dependencies are not introduced.
+        PRIORITY 5 — Imports (STRICT):
+        - All imports must exist within `src/hiero_sdk_python`.
+        - Flag hallucinated modules immediately.
+        - Prefer absolute imports.
+        - Avoid circular dependencies.
 
-        **PRIORITY 6 - Error Handling & Observability**:
-        - Exceptions must preserve root causes.
-        - Avoid swallowing errors or over-broad `except Exception`.
-        - Ensure gRPC and network errors are surfaced meaningfully.
-        - Encourage structured error messages over generic failures.
+        PRIORITY 6 — Error Handling:
+        - Preserve root causes.
+        - Avoid swallowing exceptions.
+        - Surface gRPC and network errors meaningfully.
 
-        **AVOID**:
-        - Linter or formatting feedback (handled by ruff/pre-commit).
-        - Suggesting large refactors unless clearly justified.
-        - Abstract design discussions unless they block correctness.
+        AVOID:
+        - Linting or formatting feedback.
+        - Large refactors unless correctness is impacted.
 
-        **PHILOSOPHY**:
-        - SDK code is harder to change than tests or examples.
-        - Optimize for clarity, debuggability, and long-term support.
-        - When reviewing, think like a downstream SDK user upgrading versions.
+        PHILOSOPHY:
+        - Review as a downstream user upgrading versions.
+        - Favor compatibility over elegance.
 
-        **IMPROVEMENT SUGGESTIONS (Cautious & Justified)**:
-        - Suggest refactors ONLY if they reduce duplication or clarify invariants.
-        - Improvements must preserve public API behavior unless explicitly marked as breaking.
-        - Suggest defensive checks or clearer exceptions where misuse is likely.
-        - If suggesting internal helpers, justify why they improve long-term maintainability.
+    # =====================================================
+    # TRANSACTIONS
+    # =====================================================
+    - path: "src/hiero_sdk_python/transaction/**/*"
+      instructions: |
+        Transactions are stateful, executable operations.
+
+        REQUIRED LIFECYCLE:
+        construct → configure → freeze() → sign() → execute()
+
+        STRICT RULES:
+        - Cannot execute before freeze.
+        - Signing only allowed after freeze.
+        - No mutation after freezing.
+        - Node-specific signatures must remain isolated.
+
+        Do NOT suggest reimplementing lifecycle logic in subclasses.
+
+    # =====================================================
+    # QUERIES
+    # =====================================================
+    - path: "src/hiero_sdk_python/query/**/*"
+      instructions: |
+        Queries are read-only and stateless.
+
+        QUERY LIFECYCLE:
+        construct → configure → execute()
+
+        STRICT RULES:
+        - Queries MUST NOT be frozen.
+        - Queries MUST NOT require signing unless explicitly mandated.
+        - Queries MUST NOT mutate client or network state.
+
+    # =====================================================
+    # TOKEN TRANSACTIONS
+    # =====================================================
+    - path: "src/hiero_sdk_python/tokens/**/*"
+      instructions: |
+        Token operations are specializations of Transaction.
+
+        INHERITANCE RULES:
+        - Token classes MUST inherit transaction lifecycle behavior.
+        - Do NOT reimplement freeze, sign, execute, retry, or node selection logic.
+        - Token classes should only define token-specific fields and validation.
 
 chat:
-  art: false # Don't draw ASCII art (false)
-  auto_reply: false # Don't allow bot to converse (spammy)
+  art: false
+  auto_reply: false
+
+interaction:
+  comment_trigger: true
+  require_mention: true
