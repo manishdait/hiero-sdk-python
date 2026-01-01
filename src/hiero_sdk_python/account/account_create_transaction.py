@@ -243,7 +243,7 @@ class AccountCreateTransaction(Transaction):
 
         return self
 
-    def set_staked_account_id(
+    def with_staked_account_id(
         self,
         account_id: Union[AccountId, str]
     ) -> "AccountCreateTransaction":
