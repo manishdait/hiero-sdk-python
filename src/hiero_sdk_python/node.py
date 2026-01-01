@@ -152,7 +152,7 @@ class _Node:
         if not enabled and not self._address._is_transport_security():
             return
         
-        self._close()
+        self._close() 
         
         if enabled:
             self._address = self._address._to_secure()
