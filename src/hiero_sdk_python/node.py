@@ -1,6 +1,8 @@
+import datetime
 import hashlib
 import socket
-import ssl  # Python's ssl module implements TLS (despite the name)
+import ssl
+import time  # Python's ssl module implements TLS (despite the name)
 import grpc
 from typing import Optional
 from hiero_sdk_python.account.account_id import AccountId
@@ -92,6 +94,10 @@ class _Node:
         self._verify_certificates: bool = True
         self._root_certificates: Optional[bytes] = None
         self._node_pem_cert: Optional[bytes] = None
+        self._min_backoff: int = 8 # 8 second
+        self._max_backoff: int = 60*60 # 1 hour
+        self._current_backoff: int = self._min_backoff
+        self._readmit_time: float = time.time()
     
     def _close(self):
         """
@@ -282,3 +288,31 @@ class _Node:
         # Convert DER to PEM format (matching Java's PEM encoding)
         pem_cert = ssl.DER_cert_to_PEM_cert(der_cert).encode('utf-8')
         return pem_cert
+    
+    def is_healty(self) -> bool:
+        """
+        Check if the node is healthy and eligible for retry.
+        
+        A node is considered healthy if the current time has passed the
+        readmit timestamp, meaning any backoff period after the last failure
+        has elapsed.
+
+        Returns:
+            bool: True if retry is allowed, False otherwise.
+        """
+        return self._readmit_time <= time.time()
+    
+    def increase_backoff(self) -> None:
+        """
+        Increase the node's current backoff after a failure and update the readmit time.
+        """
+        self._current_backoff = min(self._current_backoff * 2, self._max_backoff)
+        self._readmit_time = time.time() + self._current_backoff
+
+    def decrease_backoff(self) -> None:
+        """
+        Decrease the node's current backoff after a successful attempt.
+        """
+        self._current_backoff = max(self._current_backoff / 2, self._min_backoff)
+        self._readmit_time = time.time() + self._current_backoff
+    
