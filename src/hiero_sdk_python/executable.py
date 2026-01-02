@@ -73,7 +73,7 @@ class _Executable(ABC):
     def __init__(self):
         self._max_backoff = DEFAULT_MAX_BACKOFF
         self._min_backoff = DEFAULT_MIN_BACKOFF
-        self._grpc_deadline = DEFAULT_GRPC_DEADLINE
+        self._grpc_deadline = None
         self.node_account_id = None
 
         self.node_account_ids: List[AccountId] = []
@@ -198,6 +198,9 @@ class _Executable(ABC):
         tx_id = self.transaction_id if hasattr(self, "transaction_id") else None
         
         logger = client.logger
+
+        if self._grpc_deadline is None:
+            self._grpc_deadline = client._grpc_deadline
         
         for attempt in range(max_attempts):
             # Exponential backoff for retries
@@ -233,7 +236,7 @@ class _Executable(ABC):
                 logger.trace("Executing gRPC call", "requestId", self._get_request_id())
                 
                 # Execute the transaction method with the protobuf request
-                response = _execute_method(method, proto_request)
+                response = _execute_method(method, proto_request, self._grpc_deadline)
                 
                 # Map the response to an error
                 status_error = self._map_status_error(response)
@@ -263,6 +266,7 @@ class _Executable(ABC):
                         logger.trace(f"{self.__class__.__name__} finished execution")
                         return self._map_response(response, self.node_account_id, proto_request)
             except grpc.RpcError as e:
+                print("GRPC error")
                 # Save the error
                 err_persistant = f"Status: {e.code()}, Details: {e.details()}"
                 # If not using explicit node list, switch to next node for retry
@@ -288,7 +292,7 @@ def _delay_for_attempt(request_id: str, current_backoff: int, attempt: int, logg
     logger.trace(f"Retrying request attempt", "requestId", request_id, "delay", current_backoff, "attempt", attempt, "error", error)
     time.sleep(current_backoff * 0.001)
 
-def _execute_method(method, proto_request):
+def _execute_method(method, proto_request, timeout):
     """
     Executes either a transaction or query method with the given protobuf request.
 
@@ -303,7 +307,7 @@ def _execute_method(method, proto_request):
         Exception: If neither a transaction nor query method is available to execute
     """
     if method.transaction is not None:
-        return method.transaction(proto_request)
+        return method.transaction(proto_request, timeout=timeout)
     elif method.query is not None:
-        return method.query(proto_request)
+        return method.query(proto_request, timeout=timeout)
     raise Exception("No method to execute")
