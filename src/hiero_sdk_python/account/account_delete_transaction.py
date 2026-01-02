@@ -47,7 +47,7 @@ class AccountDeleteTransaction(Transaction):
         self.transfer_account_id: Optional[AccountId] = transfer_account_id
         self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
 
-    def set_account_id(self, account_id: Optional[AccountId]) -> "AccountDeleteTransaction":
+    def with_account_id(self, account_id: Optional[AccountId]) -> "AccountDeleteTransaction":
         """
         Sets the ID of the account to delete.
 
