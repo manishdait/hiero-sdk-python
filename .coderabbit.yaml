@@ -343,6 +343,65 @@ reviews:
         - Marker-based deduplication is required
         - Scripts MUST NOT assume write access
         - Permission failures MUST be handled gracefully
+    # --- CORE SDK REVIEW ---
+    - path: "src/hiero_sdk_python/**/*"
+      instructions: |
+       You are acting as a senior maintainer reviewing the core sdk logic focus only on core SDK functionality, entities, transactions, queries, client, and utilities.
+
+        **Folder Responsibilities**
+        - `account`: account entities and account-related transactions
+        - `consensus`: topic entities and consensus-related transactions
+        - `contract`: smart contract entities and transactions
+        - `file`: file related transaction and entities
+        - `query`: all SDK queries, ensure correct return types
+        - `client`: network interactions, handling nodes, network and operator
+        - `tokens`: token entities and token-related transactions
+        - `crypto`: key management (public/private), signatures, verification
+        - `schedule`: scheduled transactions handling
+        - `nodes`: node-specific transactions and related functionality
+        - `transaction`: base transaction class, lifecycle, signing, freezing, execution
+        - `system`: system transactions such as freeze
+        - `utils`: helper functions and utility modules
+        - other modules (`address_book`, `logger`, etc.) → SDK infrastructure, logging, or helpers
+
+        **Critical Principles**
+        1. **Correctness & Lifecycle**
+           - Transactions: construct → freeze_with(client) → sign → execute → receipt/response handling
+           - Queries: construct → execute → validate return types
+           - Ensure all referenced methods/classes exist in the SDK
+           - Exceptions and errors are handled clearly with proper codes/names
+
+        2. **Backward Compatibility**
+           - Maintain existing API signatures
+           - Avoid breaking changes unless strictly required; flag breaking changes and suggest mitigation
+           - Preserve enum values, property names, and method contracts
+
+        3. **Performance & Optimization**
+           - Suggest optimizations **only if safe**
+           - Avoid unnecessary abstractions or premature refactors
+           - Validate multi-sig, batch transactions, and node-specific optimizations
+
+        4. **Consistency & Readability**
+           - Naming conventions: `_id` for AccountId, `_key` for PrivateKey, role-based naming
+           - Logical file flow, clear docstrings, type hints when beneficial
+           - Avoid duplication and enforce folder responsibility boundaries
+
+        5. **Security & Safety**
+           - Key handling, signatures, and transaction integrity must be secure
+           - Network interactions and gRPC clients must safely handle errors and TLS
+
+        6. **Observability & Error Reporting**
+           - Ensure error messages are clear, informative, and deterministic
+           - Validate use of response codes (`ResponseCode.SUCCESS`, etc.)
+           - Logging and exceptions should give context for debugging
+
+        **Review Output**
+        - For each module/folder, provide:
+          - ✅ Correctness
+          - ⚠️ Backward compatibility risks
+          - 💡 Optional optimization suggestions
+          - General maintainability/readability comments
+        - Summarize any major issues, breaking changes, or security risks at the end
 
 chat:
   art: false # Don't draw ASCII art (false)
