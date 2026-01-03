@@ -4,6 +4,8 @@ language: "en-US" # USA English
 # It should not state additional information like: related issues, PRs, suggest reviewers
 # It should not continue a casual conversation with users that reply to it
 
+timeout_ms: 900000
+
 # Only documents non-default options:
 reviews:
   profile: "assertive" # Assertive profile yields more feedback, that may be considered nitpicky.
@@ -18,6 +20,8 @@ reviews:
   in_progress_fortune: false # Do not stall time with a message (spammy)
   poem: false # Do not write a literal poem (spammy)
   enable_prompt_for_ai_agents: false # Disable prompts for AI agents (spammy)
+  changed_files_only: true
+  consolidate_breaking_changes: true
 
   path_instructions:
     # --- CUSTOM INSTRUCTIONS FOR EXAMPLES DIRECTORY ---
