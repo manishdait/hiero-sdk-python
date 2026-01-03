@@ -40,6 +40,7 @@ class HbarUnit(Enum):
         Returns:
             HbarUnit: The corresponding enumeration member.
         """
+        # test
         for unit in cls:
             if unit.symbol == symbol:
                 return unit
