@@ -30,7 +30,7 @@ class HbarUnit(Enum):
         self.tinybar = tinybar
 
     @classmethod
-    def from_string(cls, symbol: str) -> "HbarUnit":
+    def of_string(cls, symbol: str) -> "HbarUnit":
         """
         Convert a unit symbol string into the corresponding `HbarUnit`.
 
@@ -40,6 +40,7 @@ class HbarUnit(Enum):
         Returns:
             HbarUnit: The corresponding enumeration member.
         """
+        # test
         for unit in cls:
             if unit.symbol == symbol:
                 return unit

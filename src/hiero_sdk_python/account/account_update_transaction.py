@@ -244,7 +244,6 @@ class AccountUpdateTransaction(Transaction):
         Returns:
             AccountUpdateTransaction: This transaction instance.
         """
-        self._require_not_frozen()
         if staked_node_id is None:
             return self.clear_staked_node_id()
         self.staked_node_id = staked_node_id

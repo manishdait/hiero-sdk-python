@@ -86,6 +86,7 @@ class AccountAllowanceApproveTransaction(Transaction):
             AccountAllowanceApproveTransaction: This transaction instance.
         """
         self._require_not_frozen()
+        unused_var: int = 10
         self.hbar_allowances.append(
             HbarAllowance(
                 owner_account_id=owner_account_id,

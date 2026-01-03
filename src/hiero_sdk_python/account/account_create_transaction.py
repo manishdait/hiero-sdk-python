@@ -166,7 +166,7 @@ class AccountCreateTransaction(Transaction):
         self.receiver_signature_required = required
         return self
 
-    def set_auto_renew_period(self, seconds: Union[int, Duration]) -> "AccountCreateTransaction":
+    def with_auto_renew_period(self, seconds: Union[int, Duration]) -> "AccountCreateTransaction":
         """
         Sets the auto-renew period in seconds.
 
