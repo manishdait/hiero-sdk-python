@@ -237,6 +237,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 - chore: update maintainer guidelines link in MAINTAINERS.md (#1605)
 - chore: update merge conflict bot message with web editor tips (#1592)
+- Refactored SDK dependencies to use version ranges, moved build-only deps out of runtime, removed unused core deps and added optional extras.
+
 
 ### Fixed
 - Fix the next-issue recommendation bot to post the correct issue recommendation comment. (#1593)
