@@ -5,7 +5,6 @@ Client module for interacting with the Hedera network.
 from decimal import Decimal
 import os
 from typing import NamedTuple, List, Union, Optional, Literal
-from dotenv import load_dotenv
 import grpc
 
 from hiero_sdk_python.hbar import Hbar
@@ -73,6 +72,13 @@ class Client:
             # Defaults to testnet if no env vars set
             client = Client.from_env()
         """
+        try:
+            from dotenv import load_dotenv
+        except ImportError as e:
+            raise ImportError(
+                "Client.from_env() requires python-dotenv"
+            ) from e
+        
         load_dotenv()
         
         if network:
