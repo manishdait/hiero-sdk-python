@@ -118,7 +118,7 @@ class PendingAirdropId:
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, PendingAirdropId):
-            return NotImplemented
+            return False
         return (
             self.sender_id == other.sender_id and
             self.receiver_id == other.receiver_id and

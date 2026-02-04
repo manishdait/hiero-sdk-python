@@ -254,7 +254,7 @@ def test_from_string_with_alias(request, alias_fixture):
         assert account_id.evm_address == alias
         assert account_id.alias_key is None
     else:
-        assert account_id.alias_key.__eq__(alias)
+        assert account_id.alias_key.to_bytes_raw() == alias.to_bytes_raw()
         assert account_id.evm_address is None
 
 
@@ -894,7 +894,7 @@ def test_to_bytes_and_from_bytes_with_alias_key(alias_key):
     assert new_account_id.shard == account_id.shard
     assert new_account_id.realm == account_id.realm
     # account.num is set to 0 as alias is set
-    assert new_account_id.alias_key.__eq__(account_id.alias_key)
+    assert new_account_id.alias_key.to_bytes_raw() == account_id.alias_key.to_bytes_raw()
     assert new_account_id.evm_address == account_id.evm_address
 
 

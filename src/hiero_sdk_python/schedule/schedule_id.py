@@ -102,7 +102,7 @@ class ScheduleId:
                 shard, realm, and schedule values, False otherwise.
         """
         if not isinstance(other, ScheduleId):
-            return NotImplemented
+            return False
         return (
             self.shard == other.shard
             and self.realm == other.realm

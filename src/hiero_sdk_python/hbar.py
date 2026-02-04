@@ -191,7 +191,7 @@ class Hbar:
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Hbar):
-            return NotImplemented
+            return False
         return self._amount_in_tinybar == other._amount_in_tinybar
 
     def __hash__(self) -> int:
