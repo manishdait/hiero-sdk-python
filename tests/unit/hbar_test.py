@@ -178,6 +178,7 @@ def test_comparison():
     assert h2 >= h1
 
     # Comparison without Hbar returns NotImplemented
+    print(h1 == 5)
     assert (h1 == 5) is False
     with pytest.raises(TypeError):
         _ = h1 < 5
