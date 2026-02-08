@@ -2,11 +2,7 @@ name: Dependency Compatibility Check
 
 on:
   push:
-    paths:
-      - "pyproject.toml"
   pull_request:
-    paths:
-      - "pyproject.toml"
 
 permissions:
   contents: read
@@ -43,7 +39,8 @@ jobs:
 
       - name: Install minimum dependencies
         run: |
-          uv pip install --resolution=lowest-direct -e ".[dev,lint,eth]"
+          rm -f uv.lock
+          uv sync --no-lock -G dev -G lint -G eth
 
       - name: Show resolved core dependency versions
         run: |
