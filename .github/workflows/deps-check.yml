@@ -44,7 +44,23 @@ jobs:
       - name: Show resolved core dependency versions
         run: |
           echo "Resolved core dependency versions:"
-          uv pip list | grep -E '^(protobuf|grpcio|cryptography|requests|pycryptodome|eth-abi|python-dotenv|eth-keys|rlp|grpcio-tools|ruff|mypy|typing-extensions|pytest)\s'
+          PATTERN='^(
+            protobuf|
+            grpcio|
+            cryptography|
+            requests|
+            pycryptodome|
+            eth-abi|
+            python-dotenv|
+            eth-keys|
+            rlp|
+            grpcio-tools|
+            ruff|
+            mypy|
+            typing-extensions|
+            pytest
+          )\s'
+          uv pip list | grep -E "$(echo "$PATTERN" | tr -d '\n ')"
 
       - name: Generate Proto Files
         run: |
