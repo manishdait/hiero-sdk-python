@@ -39,7 +39,7 @@ jobs:
 
       - name: Install minimum dependencies
         run: |
-          uv pip install --resolution=lowest-direct -e ".[eth]"
+          uv sync --all-extras --resolution=lowest-direct
 
       - name: Show resolved core dependency versions
         run: |
