@@ -7,7 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Src
-- 
+- Added Transaction size calculation properties `size`, `body_size` and `body_size_all_chunks`.
 
 ### Tests
 - Refactor `mock_server` setup for network level TLS handling and added thread safety
