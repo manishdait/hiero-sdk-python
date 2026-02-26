@@ -2,7 +2,7 @@
 import os
 from dataclasses import dataclass, field
 import logging
-from flask import Flask, request
+from flask import Flask, jsonify, request
 from tck.errors import JsonRpcError
 from tck.handlers import safe_dispatch
 from tck.protocol import build_json_rpc_error_response, build_json_rpc_success_response, parse_json_rpc_request
@@ -30,20 +30,20 @@ def json_rpc_endpoint():
     """JSON-RPC 2.0 endpoint to handle requests."""
     if request.mimetype != 'application/json':
         error = JsonRpcError.parse_error(message='Parse error: Content-Type must be application/json')
-        return build_json_rpc_error_response(error, None)
+        return jsonify(build_json_rpc_error_response(error, None))
     try:
         request_json = request.get_json(force=True)
     except Exception:
         # Malformed JSON - return parse error
         error = JsonRpcError.parse_error()
-        return build_json_rpc_error_response(error, None)
+        return jsonify(build_json_rpc_error_response(error, None))
     
     # Parse and validate the JSON-RPC request
     parsed_request = parse_json_rpc_request(request_json)
     if isinstance(parsed_request, JsonRpcError):
         # Use request id if available, else None per JSON-RPC 2.0 spec
         request_id = request_json.get('id') if isinstance(request_json, dict) else None
-        return build_json_rpc_error_response(parsed_request, request_id)
+        return jsonify(build_json_rpc_error_response(parsed_request, request_id))
 
 
     method_name = parsed_request['method']
@@ -56,10 +56,10 @@ def json_rpc_endpoint():
 
     # If the response is already an error response, return it directly
     if isinstance(response, dict) and 'jsonrpc' in response and 'error' in response:
-        return response
+        return jsonify(response)
 
     # Build and return the success response
-    return build_json_rpc_success_response(response, request_id)
+    return jsonify(build_json_rpc_success_response(response, request_id))
 
 def start_server(config: ServerConfig | None = None):
     """Start the JSON-RPC server using Flask."""
