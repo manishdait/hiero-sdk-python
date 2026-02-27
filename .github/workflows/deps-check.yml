@@ -73,4 +73,4 @@ jobs:
 
       - name: Run unit tests (min deps)
         run: |
-          uv run pytest tests/unit -v
+          uv run --resolution=lowest-direct pytest tests/unit -v
