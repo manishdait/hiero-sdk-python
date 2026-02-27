@@ -46,6 +46,14 @@ jobs:
         run: |
           uv sync --all-extras --resolution=lowest-direct
 
+      - name: Generate Proto Files
+        run: |
+          uv run --resolution=lowest-direct python generate_proto.py
+
+      - name: Run unit tests (min deps)
+        run: |
+          uv run --resolution=lowest-direct pytest tests/unit -v
+
       - name: Show resolved core dependency versions
         run: |
           echo "Resolved core dependency versions:"
@@ -66,11 +74,3 @@ jobs:
             pytest
           )\s'
           uv pip list | grep -E "$(echo "$PATTERN" | tr -d '\n ')"
-
-      - name: Generate Proto Files
-        run: |
-          uv run --resolution=lowest-direct python generate_proto.py
-
-      - name: Run unit tests (min deps)
-        run: |
-          uv run --resolution=lowest-direct pytest tests/unit -v
