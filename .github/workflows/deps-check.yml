@@ -69,7 +69,7 @@ jobs:
 
       - name: Generate Proto Files
         run: |
-          uv run python generate_proto.py
+          uv run --resolution=lowest-direct python generate_proto.py
 
       - name: Run unit tests (min deps)
         run: |
