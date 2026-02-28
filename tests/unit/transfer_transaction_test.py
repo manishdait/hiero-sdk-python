@@ -882,6 +882,7 @@ def test_multiple_nft_transfers_all_fields(mock_account_ids):
     assert serial_to_approval[100] is True
     assert serial_to_approval[101] is False
     assert serial_to_approval[102] is True
+    assert serial_to_approval is not None
 
     for nft in nft_transfers:
         assert nft.token_id == token_id_1
