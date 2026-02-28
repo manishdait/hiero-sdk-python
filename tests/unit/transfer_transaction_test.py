@@ -887,7 +887,6 @@ def test_multiple_nft_transfers_all_fields(mock_account_ids):
         assert nft.token_id == token_id_1
         assert nft.sender_id == account_id_sender
         assert nft.receiver_id == account_id_recipient
-        assert nft is not None
 
 
 def test_token_transfer_without_expected_decimals(mock_account_ids):
