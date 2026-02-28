@@ -1,10 +1,10 @@
-# This workflow checks PRs for linked issues and posts a reminder comment if missing.
+# This workflow checks PRs for linked issues and assignment status, then posts reminder comments when needed.
 # Uses pull_request_target to enable write permissions for fork PRs while checking out
 # only the base branch code (ref: main) to avoid executing untrusted fork code.
-name: PR Missing Linked Issue Reminder
+name: PR Linked Issue Reminder
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, edited, reopened]
   workflow_dispatch:
     inputs:
@@ -42,11 +42,12 @@ jobs:
         with:
           ref: main
 
-      - name: Check PR body for linked issue
+      - name: Check PR linked issue and assignment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+          REQUIRE_AUTHOR_ASSIGNED: 'true'
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
