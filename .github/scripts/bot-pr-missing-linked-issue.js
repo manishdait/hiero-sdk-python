@@ -137,7 +137,8 @@ module.exports = async ({ github, context }) => {
         });
         console.log('LinkBot comment posted successfully');
       }
-    } else if (requireAuthorAssigned && !isAuthorAssignedToAnyIssue(linkedIssues, authorLogin)) {
+    } 
+    else if (requireAuthorAssigned && !isAuthorAssignedToAnyIssue(linkedIssues, authorLogin)) {
       if (alreadyCommentedUnassignedIssue) {
         console.log('LinkBot unassigned-issue reminder already posted on this PR');
         return;
