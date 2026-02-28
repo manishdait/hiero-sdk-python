@@ -952,9 +952,7 @@ reviews:
       cryptographic soundness, or API stability is impacted.
 
     Scope is STRICTLY LIMITED to:
-    - src/hiero_sdk_python/crypto/public_key.py
-    - src/hiero_sdk_python/crypto/private_key.py
-    - src/hiero_sdk_python/crypto/evm_address.py
+    - src/hiero_sdk_python/crypto/*.py
     - Their interaction with shared SDK utilities
 
     ----------------------------------------------------------
