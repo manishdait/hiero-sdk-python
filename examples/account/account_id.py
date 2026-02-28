@@ -31,6 +31,8 @@ def create_standard_account_id():
     print(f"  Account Number: {account_id.num}")
     print(f"  String representation: {str(account_id)}")
 
+    assert account_id is not None
+
     return account_id
 
 

@@ -99,6 +99,8 @@ class AccountId:
             )
             account_id.__checksum = checksum
 
+            assert account_id is not None
+
             return account_id
         except Exception as e:
             alias_match = ALIAS_REGEX.match(account_id_str)
