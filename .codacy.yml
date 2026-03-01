@@ -3,7 +3,7 @@ engines:
   bandit:
     enabled: true
     arguments:
-      - "-lll"
-      - "-ii"
+      - "-s"
+      - "B101"
     exclude_paths:
       - tests/**
