@@ -69,6 +69,23 @@ jobs:
           NETWORK: solo
         run: |
           set -o pipefail
+          echo "🚀 Running integration tests for shard ${SHARD_INDEX}/${SHARD_TOTAL}..."
+          mapfile -t integration_tests < <(find tests/integration -maxdepth 1 -type f -name "*_test.py" | sort)
+          shard_tests=()
+          for i in "${!integration_tests[@]}"; do
+            if (( i % SHARD_TOTAL == SHARD_INDEX )); then
+              shard_tests+=("${integration_tests[$i]}")
+            fi
+          done
+
+          if [ ${#shard_tests[@]} -eq 0 ]; then
+            echo "❌ No integration tests selected for shard ${SHARD_INDEX}/${SHARD_TOTAL}"
+            echo "exit_code=1" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Selected ${#shard_tests[@]} integration test files:"
+          printf ' - %s\n' "${shard_tests[@]}"
           uv run pytest tests/integration -v --disable-warnings --continue-on-collection-errors 2>&1 | tee result_integration.log
           pytest_exit=${PIPESTATUS[0]}
           echo "exit_code=$pytest_exit" >> $GITHUB_OUTPUT
