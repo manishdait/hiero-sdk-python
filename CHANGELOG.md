@@ -12,7 +12,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Changed
 - Changed pytest version to "pytest>=8.3.4,<10" (#1917)
-- Test changes
+- Test changesc2
 
 ### Src
 - Updated `generated_proto.py` file to work with new proto version
