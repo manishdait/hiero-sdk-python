@@ -3,6 +3,7 @@ import pytest
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import ReceiptStatusError
+from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
     response_header_pb2,

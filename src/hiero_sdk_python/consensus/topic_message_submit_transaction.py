@@ -1,5 +1,5 @@
 import math
-from typing import List, Literal, Optional, Union, overload
+from typing import List, Literal, Optional, overload
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.crypto.private_key import PrivateKey
