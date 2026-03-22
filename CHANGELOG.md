@@ -15,6 +15,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Tests
 - Added TCK endpoint for the createAccount method
+- Fix Flaky tests for `mock_server` by enforcing non-tls port and adding a mock_tls certificate
 
 ### Docs
 - Add Chocolatey as a prerequisite in the Windows setup guide (#1961)
