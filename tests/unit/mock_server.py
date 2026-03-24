@@ -1,6 +1,7 @@
 import grpc
 from concurrent import futures
 from contextlib import contextmanager
+from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.account.account_id import AccountId
@@ -173,10 +174,10 @@ def mock_hedera_servers(response_sequences):
         for i, server in enumerate(servers):
             node = _Node(AccountId(0, 0, 3 + i), server.address, None)
 
-            # force insecure transport and mock cert even if we get the tls-port
-            node._set_root_certificates(b"mock-tls-cert-for-unit-tests")
-            node._apply_transport_security(False)
-            node._set_verify_certificates(False)
+            # force insecure channel
+            node._get_channel = lambda: _Channel(
+                grpc.insecure_channel(str(node._address))
+            )
 
             nodes.append(node)
 
