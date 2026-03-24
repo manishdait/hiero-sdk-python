@@ -423,7 +423,7 @@ class Transaction(_Executable):
                 return True
         return False
 
-    def build_transaction_body(self) -> transaction_pb2.Transaction:
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Abstract method to build the transaction body.
 
