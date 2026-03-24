@@ -2,6 +2,7 @@ import grpc
 import threading
 from concurrent import futures
 from contextlib import contextmanager
+from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.account.account_id import AccountId
