@@ -134,10 +134,10 @@ def _find_free_port():
         port = s.getsockname()[1]
 
         # If we get the tls port 50212 port skip it
-        if port in [50212]:
+        if port == 50212:
             return port + 1 
-        
-        return port 
+
+        return port
 
 
 class RealRpcError(grpc.RpcError):
@@ -173,17 +173,15 @@ def mock_hedera_servers(response_sequences):
         nodes = []
         for i, server in enumerate(servers):
             node = _Node(AccountId(0, 0, 3 + i), server.address, None)
-
-            # force insecure channel
-            node._get_channel = lambda: _Channel(
-                grpc.insecure_channel(str(node._address))
-            )
-
             nodes.append(node)
 
         # Create network and client
         network = Network(nodes=nodes)
         client = Client(network)
+
+        for node in client.network.nodes:
+            node._address = node._address._to_insecure()
+
         client.logger.set_level(LogLevel.DISABLED)
         # Set the operator
         key = PrivateKey.generate()
