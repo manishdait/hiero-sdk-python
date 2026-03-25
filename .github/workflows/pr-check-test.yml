@@ -26,7 +26,9 @@ permissions:
 jobs:
   unit-tests:
     name: Unit Tests (Python ${{ matrix.python-version }})
-    runs-on: ${{ ( github.repository_owner != 'hiero-ledger' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) ) && 'ubuntu-latest' || "hl-sdk-py-lin-md" }}
+    env:
+      RUNNER: ${{(github.repository_owner != 'hiero-ledger' ||(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork))&& 'ubuntu-latest' || fromJson('["self-hosted","hl-sdk-py-lin-md"]')}}
+    runs-on: ${{ env.RUNNER }}
     timeout-minutes: 10
     strategy:
       fail-fast: false
@@ -86,7 +88,9 @@ jobs:
 
   integration-tests:
     name: Integration Tests (Python ${{ matrix.python-version }})
-    runs-on: ${{ ( github.repository_owner != 'hiero-ledger' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) ) && 'ubuntu-latest' || "hl-sdk-py-lin-md" }}
+    env:
+      RUNNER: ${{(github.repository_owner != 'hiero-ledger' ||(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork))&& 'ubuntu-latest' || fromJson('["self-hosted","hl-sdk-py-lin-md"]')}}
+    runs-on: ${{ env.RUNNER }}
     timeout-minutes: 20
     needs:
       - unit-tests
@@ -161,7 +165,9 @@ jobs:
 
   test-summary:
     name: Test Results Summary
-    runs-on: ${{ ( github.repository_owner != 'hiero-ledger' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) ) && 'ubuntu-latest' || "hl-sdk-py-lin-md" }}
+    env:
+      RUNNER: ${{(github.repository_owner != 'hiero-ledger' ||(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork))&& 'ubuntu-latest' || fromJson('["self-hosted","hl-sdk-py-lin-md"]')}}
+    runs-on: ${{ env.RUNNER }}
     needs:
       - unit-tests
       - integration-tests
