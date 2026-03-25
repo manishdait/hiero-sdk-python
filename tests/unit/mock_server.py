@@ -132,8 +132,9 @@ def _find_free_port():
     """Find a free port on localhost."""
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
         s.bind(("", 0))
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        
         port = s.getsockname()[1]
-
         # If we get the tls port 50212 port skip it
         if port == 50212:
             return _find_free_port()
