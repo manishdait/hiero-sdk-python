@@ -3,7 +3,6 @@ name: Hiero Solo Integration & Unit Tests
 on:
   push:
     branches:
-      - "main"
     paths-ignore:
       - "**/*.md"
       - "docs/**"
