@@ -26,7 +26,7 @@ permissions:
 jobs:
   unit-tests:
     name: Unit Tests (Python ${{ matrix.python-version }})
-    runs-on: hl-sdk-py-lin-md
+    runs-on: ${{ github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'hl-sdk-py-lin-md' }}
     timeout-minutes: 10
     strategy:
       fail-fast: false
@@ -86,7 +86,7 @@ jobs:
 
   integration-tests:
     name: Integration Tests (Python ${{ matrix.python-version }})
-    runs-on: hl-sdk-py-lin-md
+    runs-on: ${{ github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'hl-sdk-py-lin-md' }}
     timeout-minutes: 20
     needs:
       - unit-tests
@@ -161,7 +161,7 @@ jobs:
 
   test-summary:
     name: Test Results Summary
-    runs-on: hl-sdk-py-lin-md
+    runs-on: ${{ github.event.pull_request.head.repo.fork == true && 'ubuntu-latest' || 'hl-sdk-py-lin-md' }}
     needs:
       - unit-tests
       - integration-tests
