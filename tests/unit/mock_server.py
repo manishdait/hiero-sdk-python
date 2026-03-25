@@ -126,16 +126,17 @@ class MockServer:
         self.server.stop(0)
 
 
+_USED_PORTS = set()
+
 def _find_free_port():
     """Find a free port on localhost."""
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
         s.bind(("", 0))
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         port = s.getsockname()[1]
 
         # If we get the tls port 50212 port skip it
         if port == 50212:
-            return port + 1 
+            return _find_free_port()
 
         return port
 
@@ -177,10 +178,15 @@ def mock_hedera_servers(response_sequences):
 
         # Create network and client
         network = Network(nodes=nodes)
+        network.set_transport_security(False)
+        network.set_verify_certificates(False)
         client = Client(network)
 
+        # Force non-tls channel
         for node in client.network.nodes:
-            node._address = node._address._to_insecure()
+            node._address._is_transport_security = lambda: False
+            node._set_verify_certificates(False)
+            node._close()
 
         client.logger.set_level(LogLevel.DISABLED)
         # Set the operator
