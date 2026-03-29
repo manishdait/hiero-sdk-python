@@ -4,7 +4,7 @@ from typing import Optional, Tuple
 
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import serialization, hashes
 
 try:
     from Crypto.Hash import keccak
@@ -31,12 +31,9 @@ def keccak256(data: bytes) -> bytes:
         RuntimeError: If pycryptodome or similar keccak library is not installed.
     """
 
-    global keccak
-    if keccak is None:
-        raise RuntimeError("Keccak not available. Install pycryptodome or similar.")
-    k = keccak.new(digest_bits=256)
-    k.update(data)
-    return k.digest()
+    digest = hashes.Hash(hashes.SHA3_256(), backend=default_backend())
+    digest.update(data)
+    return digest.finalize()
 
 
 def compress_point_unchecked(x: int, y: int) -> bytes:
