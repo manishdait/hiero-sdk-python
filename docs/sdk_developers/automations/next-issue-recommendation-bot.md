@@ -21,7 +21,7 @@ The workflow only runs when:
 
 The bot parses the pull request body to find linked issues using regex patterns that match:
 - `Fixes #ISSUE_NUMBER`
-- `Closes #ISSUE_NUMBER` 
+- `Closes #ISSUE_NUMBER`
 - `Resolves #ISSUE_NUMBER`
 - `Fix #ISSUE_NUMBER`
 - `Close #ISSUE_NUMBER`
@@ -49,7 +49,7 @@ The bot posts a congratulatory comment that includes:
 - **Recommended issues**: List of up to 5 relevant issues with:
   - Issue title and direct link
   - Brief description (truncated to 150 characters)
-- **Repository engagement**: 
+- **Repository engagement**:
   - Direct link to star the repository
   - Direct link to watch the repository for notifications
 - **Community resources**: Link to Discord community for questions

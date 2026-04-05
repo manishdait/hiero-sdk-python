@@ -5,33 +5,32 @@ Tests for TransactionResponse behavior.
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.transaction.transaction_response import TransactionResponse
 from hiero_sdk_python.hapi.services import (
     response_header_pb2,
     response_pb2,
     transaction_get_receipt_pb2,
     transaction_receipt_pb2,
 )
-
+from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction_response import TransactionResponse
 from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
 
 
 def test_transaction_response_fields(transaction_id):
-    """asserting response is correctly populated"""
+    """Asserting response is correctly populated"""
     resp = TransactionResponse()
-    
+
     # Assert public attributes exist (PRIORITY 1: protect against breaking changes)
-    assert hasattr(resp, 'transaction_id'), "Missing public attribute: transaction_id"
-    assert hasattr(resp, 'node_id'), "Missing public attribute: node_id"
-    assert hasattr(resp, 'hash'), "Missing public attribute: hash"
-    assert hasattr(resp, 'validate_status'), "Missing public attribute: validate_status"
-    assert hasattr(resp, 'transaction'), "Missing public attribute: transaction"
- 
+    assert hasattr(resp, "transaction_id"), "Missing public attribute: transaction_id"
+    assert hasattr(resp, "node_id"), "Missing public attribute: node_id"
+    assert hasattr(resp, "hash"), "Missing public attribute: hash"
+    assert hasattr(resp, "validate_status"), "Missing public attribute: validate_status"
+    assert hasattr(resp, "transaction"), "Missing public attribute: transaction"
+
     # Assert default values
-    assert resp.hash == bytes(), "Default hash should be empty bytes"
+    assert resp.hash == b"", "Default hash should be empty bytes"
     assert resp.validate_status is False, "Default validate_status should be False"
     assert resp.transaction is None, "Default transaction should be None"
 
@@ -54,23 +53,15 @@ def test_transaction_response_get_receipt_is_pinned_to_submitting_node(transacti
     """
     bad_node_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.INVALID_TRANSACTION
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.UNKNOWN
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.INVALID_TRANSACTION),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.UNKNOWN),
         )
     )
 
     good_node_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.SUCCESS
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
         )
     )
 

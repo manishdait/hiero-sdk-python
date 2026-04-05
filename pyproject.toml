@@ -48,7 +48,8 @@ dev = [
     "grpcio-tools>=1.76.0,<2",
     "pytest>=8.3.4,<10",
     "pytest-cov>=7.0.0,<8",
-    "hypothesis>=6.137.2"
+    "hypothesis>=6.137.2",
+    "pre-commit>=4.0.0",
 ]
 
 lint = [
@@ -81,11 +82,24 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 120
-target-version = "py314"
+target-version = "py310"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "S101",    # use of assert
+    "ANN201",  # return types
+    "PLR2004", # magic numbers
+    "E712",    # allow '== True' in tests for explicit assertions
+    "PERF",    # disable list compression
+]
+
+"examples/**/*.py" = [
+    "T201",     # allow print statements
+    "PERF203",  # allow try-except inside loops
+]
 
 [tool.ruff.lint]
 select = [
-    "D",    # docstrings
     "E",    # pycodestyle errors
     "F",    # pyflakes
     "I",    # import sorting
@@ -98,9 +112,11 @@ select = [
     "RSE",  # exception correctness
 ]
 ignore = [
+    "D",        # docstrings
     "D212",     # disable "summary on same line"
     "E501",     # line length -> formatter
-    "B008",     # function calls in argument defaults 
+    "B008",     # function calls in argument defaults
+    "UP017",    # stop converting timezone.utc to datetime.timezone.utc
 ]
 
 [tool.ruff.format]

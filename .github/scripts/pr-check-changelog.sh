@@ -36,7 +36,7 @@ set -euo pipefail
 #    - Immediate Fail Check: If 'added_bullets' is empty, sets failed=1 and exits.
 #      (You cannot merge code without a changelog entry).
 #
-# 3️⃣ Context Tracking 
+# 3️⃣ Context Tracking
 #    As the script reads the file line-by-line, it tracks:
 #    - current_release: Main version header (e.g., [Unreleased] or [1.0.0]).
 #    - current_subtitle: Sub-category (e.g., ### Added, ### Fixed).
@@ -277,7 +277,7 @@ if [[ -n "$wrong_release_entries" ]]; then
         post_pr_comment "$WRONG_SECTION_MARKER
 ⚠️ **Changelog placement issue**
 
-Thanks for adding a changelog entry! 🙌  
+Thanks for adding a changelog entry! 🙌
 However, one or more entries in this PR were added under a **released version**.
 
 📌 New changelog entries should always go under **[Unreleased]**, grouped beneath an appropriate category (e.g. *Added*, *Fixed*).

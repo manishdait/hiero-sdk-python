@@ -50,9 +50,7 @@ def test_get_receipt_executes_and_returns_receipt(transaction_response):
     """Test get_receipt execute receipt query and return transaction receipt."""
     receipt_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
             receipt=transaction_receipt_pb2.TransactionReceipt(
                 status=ResponseCode.SUCCESS,
                 accountID=basic_types_pb2.AccountID(
@@ -87,12 +85,8 @@ def test_get_receipt_returns_failure_status_without_validate_status(transaction_
     """Test failing status returns a receipt instead of raising an error when validation is disabled."""
     receipt_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.INVALID_SIGNATURE
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.INVALID_SIGNATURE),
         )
     )
 
@@ -102,16 +96,13 @@ def test_get_receipt_returns_failure_status_without_validate_status(transaction_
         assert isinstance(receipt, TransactionReceipt)
         assert receipt.status == ResponseCode.INVALID_SIGNATURE
 
+
 def test_get_receipt_raises_exception_with_validate_status(transaction_response):
     """Test get_receipt error is raised for non-success statuses when validation is enabled."""
     receipt_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.INVALID_SIGNATURE
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.INVALID_SIGNATURE),
         )
     )
 
@@ -135,9 +126,7 @@ def test_get_record_query_builds_query(transaction_response):
 def test_get_record_executes_and_returns_record(transaction_response):
     """Test get_record execute record query and return transaction record."""
     receipt = transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS)
-    record = transaction_record_pb2.TransactionRecord(
-        receipt=receipt, memo="record", transactionFee=100
-    )
+    record = transaction_record_pb2.TransactionRecord(receipt=receipt, memo="record", transactionFee=100)
 
     record_response = [
         [

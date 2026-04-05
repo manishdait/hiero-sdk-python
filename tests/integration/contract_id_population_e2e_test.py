@@ -18,7 +18,7 @@ from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_info_query import ContractInfoQuery
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils import env, wait_for_mirror_node
+from tests.integration.utils import wait_for_mirror_node
 
 
 @pytest.mark.integration
@@ -36,9 +36,7 @@ def test_populate_contract_id_num(env):
     file_id = file_receipt.file_id
     assert file_id is not None
 
-    constructor_params = ContractFunctionParameters().add_bytes32(
-        b"Initial message from constructor"
-    )
+    constructor_params = ContractFunctionParameters().add_bytes32(b"Initial message from constructor")
     contract_receipt = (
         ContractCreateTransaction()
         .set_admin_key(env.operator_key.public_key())

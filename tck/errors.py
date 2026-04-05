@@ -1,7 +1,9 @@
 """Error code constants for the TCK server."""
 
-from functools import wraps
+from __future__ import annotations
+
 import logging
+from functools import wraps
 
 from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError, ReceiptStatusError
 from hiero_sdk_python.response_code import ResponseCode
@@ -34,7 +36,7 @@ class JsonRpcError(Exception):
         return error
 
     @classmethod
-    def parse_error(cls, data=None, message: str = "Parse error") -> "JsonRpcError":
+    def parse_error(cls, data=None, message: str = "Parse error") -> JsonRpcError:
         """Create a Parse Error JSON-RPC error.
 
         Args:
@@ -44,9 +46,7 @@ class JsonRpcError(Exception):
         return cls(PARSE_ERROR, message, data)
 
     @classmethod
-    def invalid_request_error(
-        cls, data=None, message: str = "Invalid Request"
-    ) -> "JsonRpcError":
+    def invalid_request_error(cls, data=None, message: str = "Invalid Request") -> JsonRpcError:
         """Create an Invalid Request JSON-RPC error.
 
         Args:
@@ -56,9 +56,7 @@ class JsonRpcError(Exception):
         return cls(INVALID_REQUEST, message, data)
 
     @classmethod
-    def method_not_found_error(
-        cls, data=None, message: str = "Method not found"
-    ) -> "JsonRpcError":
+    def method_not_found_error(cls, data=None, message: str = "Method not found") -> JsonRpcError:
         """Create a Method Not Found JSON-RPC error.
 
         Args:
@@ -68,9 +66,7 @@ class JsonRpcError(Exception):
         return cls(METHOD_NOT_FOUND, message, data)
 
     @classmethod
-    def invalid_params_error(
-        cls, data=None, message: str = "Invalid params"
-    ) -> "JsonRpcError":
+    def invalid_params_error(cls, data=None, message: str = "Invalid params") -> JsonRpcError:
         """Create an Invalid Params JSON-RPC error.
 
         Args:
@@ -80,9 +76,7 @@ class JsonRpcError(Exception):
         return cls(INVALID_PARAMS, message, data)
 
     @classmethod
-    def internal_error(
-        cls, data=None, message: str = "Internal error"
-    ) -> "JsonRpcError":
+    def internal_error(cls, data=None, message: str = "Internal error") -> JsonRpcError:
         """Create an Internal Error JSON-RPC error.
 
         Args:
@@ -92,7 +86,7 @@ class JsonRpcError(Exception):
         return cls(INTERNAL_ERROR, message, data)
 
     @classmethod
-    def hiero_error(cls, data=None, message: str = "Hiero error") -> "JsonRpcError":
+    def hiero_error(cls, data=None, message: str = "Hiero error") -> JsonRpcError:
         """Create a Hiero-specific JSON-RPC error.
 
         Args:
@@ -111,24 +105,18 @@ def handle_sdk_errors(func):
             raise
         except PrecheckError as e:
             logger.error(f"PrecheckError (status: {ResponseCode(e.status).name}, method: {func.__name__})")
-            raise JsonRpcError.hiero_error(
-                {"status": ResponseCode(e.status).name}
-            )
+            raise JsonRpcError.hiero_error({"status": ResponseCode(e.status).name}) from e
 
         except ReceiptStatusError as e:
             logger.error(f"ReceiptStatusError (status: {ResponseCode(e.status).name}, method: {func.__name__})")
-            raise JsonRpcError.hiero_error(
-                {"status": ResponseCode(e.status).name}
-            )
-        
+            raise JsonRpcError.hiero_error({"status": ResponseCode(e.status).name}) from e
+
         except MaxAttemptsError as e:
             logger.error(f"MaxAttemptsError (method: {func.__name__})")
-            raise JsonRpcError.hiero_error(
-                message= str(e)
-            )
+            raise JsonRpcError.hiero_error(message=str(e)) from e
 
         except Exception as e:
             logger.exception("Unhandled error in RPC handler")
-            raise JsonRpcError.internal_error(message="Internal error")
+            raise JsonRpcError.internal_error(message="Internal error") from e
 
     return wrapper

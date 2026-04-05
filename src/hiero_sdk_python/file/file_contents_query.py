@@ -1,8 +1,6 @@
-"""
-Query to get the contents of a file on the network.
-"""
+"""Query to get the contents of a file on the network."""
 
-from typing import Optional, Union
+from __future__ import annotations
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
@@ -26,22 +24,22 @@ class FileContentsQuery(Query):
 
     """
 
-    def __init__(self, file_id: Optional[FileId] = None) -> None:
+    def __init__(self, file_id: FileId | None = None) -> None:
         """
         Initializes a new FileContentsQuery instance with an optional file_id.
 
         Args:
-            file_id (Optional[FileId], optional): The ID of the file to query.
+            file_id (FileId, optional): The ID of the file to query.
         """
         super().__init__()
         self.file_id = file_id
 
-    def set_file_id(self, file_id: Optional[FileId]) -> "FileContentsQuery":
+    def set_file_id(self, file_id: FileId | None) -> FileContentsQuery:
         """
         Sets the ID of the file to query.
 
         Args:
-            file_id (Optional[FileId]): The ID of the file.
+            file_id (FileId): The ID of the file.
 
         Returns:
             FileContentsQuery: Returns self for method chaining.
@@ -96,7 +94,7 @@ class FileContentsQuery(Query):
         """
         return _Method(transaction_func=None, query_func=channel.file.getFileContent)
 
-    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> str:
+    def execute(self, client: Client, timeout: int | float | None = None) -> str:
         """
         Executes the file contents query.
 
@@ -108,7 +106,7 @@ class FileContentsQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
-            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
+            timeout (int | float, optional): The total execution timeout (in seconds) for this execution.
 
         Returns:
             str: The contents of the file from the network
@@ -123,9 +121,7 @@ class FileContentsQuery(Query):
 
         return response.fileGetContents.fileContents.contents
 
-    def _get_query_response(
-        self, response: response_pb2.Response
-    ) -> FileGetContentsResponse:
+    def _get_query_response(self, response: response_pb2.Response) -> FileGetContentsResponse:
         """
         Extracts the file contents response from the full response.
 

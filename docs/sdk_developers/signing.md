@@ -188,4 +188,4 @@ git rebase main -S
 ## Still Need Help?
 
 * Refer to [GitHub's GPG Docs](https://docs.github.com/en/authentication/managing-commit-signature-verification)
-* Ask on the **Hiero [Discord](../discord.md)** 
+* Ask on the **Hiero [Discord](../discord.md)**

@@ -1,7 +1,9 @@
 """Unit tests for _HederaTrustManager certificate validation."""
 
 import hashlib
+
 import pytest
+
 from src.hiero_sdk_python.node import _HederaTrustManager
 
 pytestmark = pytest.mark.unit
@@ -47,9 +49,7 @@ def test_trust_manager_check_server_trusted_matching_hash():
     cert_hash_bytes = hashlib.sha384(pem_cert).digest()
     cert_hash_hex = cert_hash_bytes.hex().lower()
 
-    trust_manager = _HederaTrustManager(
-        cert_hash_hex.encode("utf-8"), verify_certificate=True
-    )
+    trust_manager = _HederaTrustManager(cert_hash_hex.encode("utf-8"), verify_certificate=True)
     # Should not raise
     assert trust_manager.check_server_trusted(pem_cert) is True
 
