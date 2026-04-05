@@ -8,15 +8,15 @@ in the Hiero Python SDK repository.
 It offers shared language and examples to help:
 
 **Issue creators:**
-- Describe larger, more complex tasks clearly  
-- Set expectations around scope, impact, and collaboration  
-- Provide helpful context for experienced contributors  
+- Describe larger, more complex tasks clearly
+- Set expectations around scope, impact, and collaboration
+- Provide helpful context for experienced contributors
 
 **Maintainers:**
-- Apply the Advanced label consistently  
-- Keep issue difficulty labels clear and useful  
+- Apply the Advanced label consistently
+- Keep issue difficulty labels clear and useful
 
-This isn’t a rulebook, and it’s not meant to limit what kinds of contributions are welcome.  
+This isn’t a rulebook, and it’s not meant to limit what kinds of contributions are welcome.
 All contributions — from small fixes to major improvements — are valuable to the Hiero project.
 
 The **Advanced** label simply highlights work that involves deeper design, broader impact,
@@ -30,9 +30,9 @@ Advanced Issues represent **high-impact, high-responsibility work**.
 
 They’re a great fit for contributors who:
 
-- Have deep familiarity with the Python SDK  
-- Enjoy designing solutions and evaluating trade-offs  
-- Are comfortable thinking about long-term impact  
+- Have deep familiarity with the Python SDK
+- Enjoy designing solutions and evaluating trade-offs
+- Are comfortable thinking about long-term impact
 
 These issues often involve shaping how the SDK evolves over time.
 
@@ -42,10 +42,10 @@ These issues often involve shaping how the SDK evolves over time.
 
 Advanced Issues are designed for contributors who:
 
-- Have strong Python SDK and domain knowledge  
-- Understand performance, concurrency, and API stability considerations  
-- Feel comfortable proposing and discussing designs  
-- Are open to conversations about breaking changes and long-term direction  
+- Have strong Python SDK and domain knowledge
+- Understand performance, concurrency, and API stability considerations
+- Feel comfortable proposing and discussing designs
+- Are open to conversations about breaking changes and long-term direction
 
 These issues usually involve more discussion, iteration, and collaboration than earlier issue levels.
 
@@ -55,10 +55,10 @@ These issues usually involve more discussion, iteration, and collaboration than 
 
 Advanced Issues often:
 
-- Are design-heavy  
-- Affect multiple parts of the SDK  
-- Have long-term maintenance impact  
-- Involve discussion, iteration, and review  
+- Are design-heavy
+- Affect multiple parts of the SDK
+- Have long-term maintenance impact
+- Involve discussion, iteration, and review
 
 They’re a great fit for contributors who enjoy tackling complex problems and shaping the future of the project.
 
@@ -69,39 +69,39 @@ They’re a great fit for contributors who enjoy tackling complex problems and s
 Here are some examples of tasks that often fit well at this level:
 
 ### Core SDK Changes
-- Significant behavior changes with clear motivation  
-- Refactors spanning multiple related subsystems  
-- Improvements to core execution paths or abstractions  
-- Bug fixes that require investigation across multiple layers  
+- Significant behavior changes with clear motivation
+- Refactors spanning multiple related subsystems
+- Improvements to core execution paths or abstractions
+- Bug fixes that require investigation across multiple layers
 
 ### Architecture & Design
-- Introducing new abstractions or subsystems  
-- Improving extensibility or testability through redesign  
-- Decoupling tightly coupled components  
-- Addressing systemic architectural issues  
+- Introducing new abstractions or subsystems
+- Improving extensibility or testability through redesign
+- Decoupling tightly coupled components
+- Addressing systemic architectural issues
 
 ### Interfaces & Contracts
-- Evolving public or internal APIs with clear rationale  
-- Formalizing or refining existing contracts  
-- Improving type consistency across large areas of the codebase  
-- Introducing shared types or protocols  
+- Evolving public or internal APIs with clear rationale
+- Formalizing or refining existing contracts
+- Improving type consistency across large areas of the codebase
+- Introducing shared types or protocols
 
 ### Documentation & Guidance
-- Writing or updating architectural documentation  
-- Explaining non-obvious design decisions  
-- Adding migration notes or deprecation guidance  
-- Aligning docs with new behavior or APIs  
+- Writing or updating architectural documentation
+- Explaining non-obvious design decisions
+- Adding migration notes or deprecation guidance
+- Aligning docs with new behavior or APIs
 
 ### Examples & Developer Experience
-- Designing new examples for advanced features  
-- Updating examples to reflect new APIs or workflows  
-- Improving clarity around advanced usage patterns  
+- Designing new examples for advanced features
+- Updating examples to reflect new APIs or workflows
+- Improving clarity around advanced usage patterns
 
 ### Testing & Validation
-- Designing new test strategies  
-- Adding comprehensive coverage for new abstractions  
-- Refactoring test architecture to support new designs  
-- Introducing regression tests for complex scenarios  
+- Designing new test strategies
+- Adding comprehensive coverage for new abstractions
+- Refactoring test architecture to support new designs
+- Introducing regression tests for complex scenarios
 
 ---
 
@@ -111,18 +111,18 @@ Advanced Issues are not just “bigger versions” of other issue types.
 
 If a task:
 
-- Can be completed by following existing patterns  
-- Is mostly mechanical or scripted  
-- Has very limited impact or risk  
+- Can be completed by following existing patterns
+- Is mostly mechanical or scripted
+- Has very limited impact or risk
 
 …it may be a better fit for **Beginner** or **Intermediate** labels.
 
 Advanced Issues usually involve:
 
-- Design choices  
-- Trade-offs  
-- Broader context  
-- Long-term considerations  
+- Design choices
+- Trade-offs
+- Broader context
+- Long-term considerations
 
 ---
 
@@ -130,9 +130,9 @@ Advanced Issues usually involve:
 
 Advanced Issues are usually:
 
-- ⏱ **Estimated time:** 3+ days  
-- 📄 **Scope:** Multiple modules or repository-wide  
-- 🧠 **Challenge level:** Design, iteration, and long-term ownership  
+- ⏱ **Estimated time:** 3+ days
+- 📄 **Scope:** Multiple modules or repository-wide
+- 🧠 **Challenge level:** Design, iteration, and long-term ownership
 
 They often evolve through discussion and may require multiple review cycles.
 
@@ -142,32 +142,32 @@ They often evolve through discussion and may require multiple review cycles.
 
 ### Implement HIP-1261 fee estimate query support in the Python SDK
 
-The Hiero Python SDK doesn’t currently support fee estimate queries as defined in  
+The Hiero Python SDK doesn’t currently support fee estimate queries as defined in
 HIP-1261. This makes it harder for developers to programmatically estimate
 transaction fees before execution.
 
 This issue focuses on **designing and implementing full SDK support** for HIP-1261, including:
 
-- Public APIs  
-- Internal request/response handling  
-- Tests and examples  
+- Public APIs
+- Internal request/response handling
+- Tests and examples
 
 The implementation should align with the HIP specification and stay consistent
 with patterns used across other SDKs.
 
-**Reference design document:**  
+**Reference design document:**
 https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/proposals/hips/hip-1261.md
 
 ### Suggested Steps
 
-1. Review HIP-1261 to understand the intended behavior and constraints  
-2. Design the Python SDK API surface for fee estimate queries  
+1. Review HIP-1261 to understand the intended behavior and constraints
+2. Design the Python SDK API surface for fee estimate queries
 3. Implement the feature across the SDK, including:
-   - Public-facing query or transaction classes  
-   - Internal request/response handling  
-   - Validation and error handling  
-4. Add unit and integration tests  
-5. Provide at least one usage example  
+   - Public-facing query or transaction classes
+   - Internal request/response handling
+   - Validation and error handling
+4. Add unit and integration tests
+5. Provide at least one usage example
 
 ---
 
@@ -175,15 +175,15 @@ https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/proposals/hips/h
 
 Advanced Issues are supported through:
 
-- Design discussions in issues and PRs  
-- Maintainer and community feedback  
-- Iterative review cycles  
+- Design discussions in issues and PRs
+- Maintainer and community feedback
+- Iterative review cycles
 
 Support focuses on:
 
-- Exploring design options  
-- Evaluating trade-offs  
-- Ensuring long-term maintainability  
+- Exploring design options
+- Evaluating trade-offs
+- Ensuring long-term maintainability
 
 The goal is to build strong, well-considered solutions together.
 
@@ -193,11 +193,11 @@ The goal is to build strong, well-considered solutions together.
 
 An issue is often a good fit for the **Advanced** label when it:
 
-- Involves system-level thinking  
-- Has long-term impact on the SDK  
-- Benefits from experienced review and iteration  
+- Involves system-level thinking
+- Has long-term impact on the SDK
+- Benefits from experienced review and iteration
 
 ---
 
-Advanced Issues are about shaping the future of the project —  
+Advanced Issues are about shaping the future of the project —
 through thoughtful design, collaboration, and long-term vision.

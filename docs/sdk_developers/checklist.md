@@ -6,13 +6,13 @@
 
 ---
 
-## 1. Prior to Submission 
+## 1. Prior to Submission
 
 ## Required ✅
 
 - [ ] All commits are signed (`-S`) and DCO signed-off (`-s`)
 - [ ] Changelog entry added under `[Unreleased]`
-- [ ] Tests pass 
+- [ ] Tests pass
 - [ ] Only changes related to the issue are included
 
 ## Recommended 👍

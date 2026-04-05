@@ -87,9 +87,9 @@ You will see sections like:
 ```text
 <<<<<<< HEAD
 code from main
-======= 
+=======
 your branch’s code
->>>>>>> mybranch     
+>>>>>>> mybranch
 ```
 
 ### 3. Decide what the final code should be
@@ -113,7 +113,7 @@ Sometimes you'll be:
 Generally, you want to keep all changes that were merged to main, but additionally, layer on your changes.
 
 
-> ✅  **Resolving Conflicts Requires Human Interpretation**. Merge conflicts require thinking about what the final piece should be, should it include both changes? some of each? none of one? 
+> ✅  **Resolving Conflicts Requires Human Interpretation**. Merge conflicts require thinking about what the final piece should be, should it include both changes? some of each? none of one?
 
 > ✅  **Resolving Conflicts Requires Human Edits**. Merge conflicts require manually editing the code.
 
@@ -163,7 +163,7 @@ git rebase --continue
 
 ⚠️ Do NOT just click “Accept All Incoming” or “Accept All Current” — that usually **deletes** or **corrupts** important code.
 
-Once the rebase operation completes, your commits will be layered on top of main. It means your commit history will look “different” and you may even see changes to commits from other authors — this is expected, since rebase rewrites history. 
+Once the rebase operation completes, your commits will be layered on top of main. It means your commit history will look “different” and you may even see changes to commits from other authors — this is expected, since rebase rewrites history.
 
 ##### 8. Push changes
 If you already have an open Pull Request, you will need to update it with a **force push**.
