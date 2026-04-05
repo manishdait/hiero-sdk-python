@@ -59,8 +59,27 @@ jobs:
       - name: Generate Proto Files
         run: uv run generate_proto.py
 
-      - name: Run Ruff
-        run: uv run ruff check --output-format=github --statistics .
+      - name: Run Ruff (Lint & Format)
+        run: |
+          echo "Checking code quality and formatting..."
+
+          uv run ruff check --output-format=github .
+
+          if [ $? -ne 0 ]; then
+            echo ""
+            echo "-------------------------------------------------------"
+            echo "RUFF CHECK FAILED"
+            echo "-------------------------------------------------------"
+            echo "HOW TO FIX LOCALLY:"
+            echo "1. Install pre-commit: 'pip install pre-commit'"
+            echo "2. Set up hooks: 'pre-commit install'"
+            echo "3. Auto-fix everything: 'uv run ruff check --fix . && uv run ruff format .'"
+            echo "-------------------------------------------------------"
+            echo ""
+            exit 1
+          fi
+
+          echo "Linting and formatting look great!"
 
       - name: Run unit tests
         id: unit
