@@ -59,6 +59,9 @@ jobs:
       - name: Generate Proto Files
         run: uv run generate_proto.py
 
+      - name: Run Ruff
+        run: uv run ruff check --output-format=github --statistics .
+
       - name: Run unit tests
         id: unit
         continue-on-error: true
