@@ -5,22 +5,21 @@ Tests for TransactionResponse behavior.
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.transaction.transaction_response import TransactionResponse
 from hiero_sdk_python.hapi.services import (
     response_header_pb2,
     response_pb2,
     transaction_get_receipt_pb2,
     transaction_receipt_pb2,
 )
-
+from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction_response import TransactionResponse
 from tests.unit.mock_server import mock_hedera_servers
 
 pytestmark = pytest.mark.unit
 
 
 def test_transaction_response_fields(transaction_id):
-    """asserting response is correctly populated"""
+    """Asserting response is correctly populated"""
     resp = TransactionResponse()
     
     # Assert public attributes exist (PRIORITY 1: protect against breaking changes)
@@ -31,7 +30,7 @@ def test_transaction_response_fields(transaction_id):
     assert hasattr(resp, 'transaction'), "Missing public attribute: transaction"
  
     # Assert default values
-    assert resp.hash == bytes(), "Default hash should be empty bytes"
+    assert resp.hash == b'', "Default hash should be empty bytes"
     assert resp.validate_status is False, "Default validate_status should be False"
     assert resp.transaction is None, "Default transaction should be None"
 
