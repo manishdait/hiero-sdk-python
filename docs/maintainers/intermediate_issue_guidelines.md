@@ -8,15 +8,15 @@ in the Hiero Python SDK repository.
 It helps:
 
 **Issue creators:**
-- Describe moderately complex tasks clearly  
-- Set expectations around scope and independence  
-- Provide enough context without over-prescribing solutions  
+- Describe moderately complex tasks clearly
+- Set expectations around scope and independence
+- Provide enough context without over-prescribing solutions
 
 **Maintainers:**
-- Apply the Intermediate label consistently  
-- Keep issue difficulty levels clear and helpful  
+- Apply the Intermediate label consistently
+- Keep issue difficulty levels clear and helpful
 
-This isn’t a rulebook, and it’s not meant to limit what kinds of contributions are welcome.  
+This isn’t a rulebook, and it’s not meant to limit what kinds of contributions are welcome.
 All contributions — from small fixes to major improvements — are valuable to the Hiero project.
 
 The **Intermediate** label highlights work that involves investigation, reasoning,
@@ -30,15 +30,15 @@ Intermediate Issues represent the **next step after Beginner Issues**.
 
 They’re a great fit for contributors who:
 
-- Are comfortable navigating the codebase  
-- Enjoy investigating how things work  
-- Are ready to take more ownership of their changes  
+- Are comfortable navigating the codebase
+- Enjoy investigating how things work
+- Are ready to take more ownership of their changes
 
 These issues help contributors grow their confidence in:
 
-- Understanding existing behavior  
-- Making thoughtful, localized changes  
-- Working more independently  
+- Understanding existing behavior
+- Making thoughtful, localized changes
+- Working more independently
 
 ---
 
@@ -46,10 +46,10 @@ These issues help contributors grow their confidence in:
 
 Intermediate Issues are designed for contributors who:
 
-- Are familiar with the Python SDK structure  
-- Can read and reason about existing implementations  
-- Are comfortable working across multiple files  
-- Can ask focused questions when needed  
+- Are familiar with the Python SDK structure
+- Can read and reason about existing implementations
+- Are comfortable working across multiple files
+- Can ask focused questions when needed
 
 These issues usually involve more exploration than Beginner Issues,
 but still have clear goals and boundaries.
@@ -60,10 +60,10 @@ but still have clear goals and boundaries.
 
 Intermediate Issues often:
 
-- Involve multiple related files  
-- Require understanding existing behavior  
-- Leave room for thoughtful implementation choices  
-- Stay focused on a specific, well-defined goal  
+- Involve multiple related files
+- Require understanding existing behavior
+- Leave room for thoughtful implementation choices
+- Stay focused on a specific, well-defined goal
 
 They’re a great fit for contributors who enjoy learning by digging into the code.
 
@@ -74,48 +74,48 @@ They’re a great fit for contributors who enjoy learning by digging into the co
 Here are examples of tasks that often fit well at this level:
 
 ### Core SDK Changes
-- Small-to-medium behavior changes with clear intent  
-- Bug fixes that require investigating existing logic  
-- Localized refactors for clarity or maintainability  
-- Improvements to existing APIs without breaking contracts  
+- Small-to-medium behavior changes with clear intent
+- Bug fixes that require investigating existing logic
+- Localized refactors for clarity or maintainability
+- Improvements to existing APIs without breaking contracts
 
 ### Refactors & Code Quality
-- Refining overly broad or imprecise type hints  
-- Reducing duplication or complexity  
-- Improving internal abstractions with clear justification  
+- Refining overly broad or imprecise type hints
+- Reducing duplication or complexity
+- Improving internal abstractions with clear justification
 
 ### Documentation & Guides
-- Writing new documentation for existing features  
-- Clarifying developer guides based on real usage  
-- Documenting non-obvious workflows  
-- Updating docs to reflect recent changes  
+- Writing new documentation for existing features
+- Clarifying developer guides based on real usage
+- Documenting non-obvious workflows
+- Updating docs to reflect recent changes
 
 ### Examples & Usability
-- Creating new examples for existing features  
-- Improving examples based on user feedback  
-- Refactoring examples to demonstrate best practices  
+- Creating new examples for existing features
+- Improving examples based on user feedback
+- Refactoring examples to demonstrate best practices
 
 ### Tests
-- Adding new tests for existing functionality  
-- Extending coverage for edge cases  
-- Refactoring tests for clarity and structure  
+- Adding new tests for existing functionality
+- Extending coverage for edge cases
+- Refactoring tests for clarity and structure
 
 ---
 
 ## Usually Not Good Fits
 
-- Purely mechanical tasks  
-- Fully scripted changes  
-- Large architectural redesigns  
-- Long-term, multi-phase projects  
-- Work requiring deep protocol or DLT expertise  
+- Purely mechanical tasks
+- Fully scripted changes
+- Large architectural redesigns
+- Long-term, multi-phase projects
+- Work requiring deep protocol or DLT expertise
 
 These tasks may be a better fit for **Good First Issue** or **Beginner** labels.
 
 If a task:
 
-- Involves major design decisions  
-- Affects core architecture or APIs  
+- Involves major design decisions
+- Affects core architecture or APIs
 
 …it may be a better fit for the **Advanced** label.
 
@@ -125,9 +125,9 @@ If a task:
 
 Intermediate Issues are usually:
 
-- ⏱ **Estimated time:** 1–3 days  
-- 📄 **Scope:** Multiple related files  
-- 🧠 **Challenge level:** Investigation, reasoning, and ownership  
+- ⏱ **Estimated time:** 1–3 days
+- 📄 **Scope:** Multiple related files
+- 🧠 **Challenge level:** Investigation, reasoning, and ownership
 
 They’re designed to be achievable in a single pull request.
 
@@ -156,10 +156,10 @@ Add an optional configuration flag that allows callers to request child receipts
 
 The change should:
 
-- Be opt-in (default behavior stays the same)  
-- Reuse existing receipt parsing logic  
-- Follow existing query configuration patterns  
-- Avoid breaking public APIs  
+- Be opt-in (default behavior stays the same)
+- Reuse existing receipt parsing logic
+- Follow existing query configuration patterns
+- Avoid breaking public APIs
 
 Example usage:
 

@@ -1,4 +1,4 @@
-# Writing Blog Posts 
+# Writing Blog Posts
 
 We welcome blog posts to the **Hiero Website Repository** about the Python SDK
 
