@@ -18,7 +18,7 @@ git remote add upstream https://github.com/hiero-ledger/hiero-sdk-python.git
 #### 2. Sync your main on your fork
 Each time you want to sync:
 - Sync your fork's main with the upstream main changes:
- 
+
 ```bash
   git checkout main
   git fetch upstream
@@ -32,7 +32,7 @@ You can also do this by visiting your repository "https://github.com/YOUR_GITHUB
 
 Your fork’s `main` branch is now up to date, but **your working branch is not**.
 
-To bring your branch in sync with the latest changes, apply a **rebase**.  
+To bring your branch in sync with the latest changes, apply a **rebase**.
 This keeps history clean and ensures your commits remain eligible for review.
 
 To rebase:
@@ -42,8 +42,8 @@ git checkout mybranch
 git rebase main -S
 ```
 
-> ⚠️ **Always include the -S flag**  
-> ⚠️ **Do NOT merge `main` into your branch**  
+> ⚠️ **Always include the -S flag**
+> ⚠️ **Do NOT merge `main` into your branch**
 
 ### 4. Verify Sign Status
 Verify after the rebase operation, your commits are still signed correctly:
@@ -62,4 +62,4 @@ If conflicts occur during rebase, See [Merge Conflict Guide](./merge_conflicts.m
 ### Helpful Resources
 - [Signing Guide](signing.md)
 - [Merge Conflict Guide](./merge_conflicts.md)
-- [Discord](../discord.md) 
+- [Discord](../discord.md)

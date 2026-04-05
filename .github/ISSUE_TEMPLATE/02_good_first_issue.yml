@@ -33,13 +33,13 @@ body:
         > [!IMPORTANT]
         > **This issue does not require prior domain knowledge.**
         >
-        > - No Hiero or Hedera experience needed  
-        > - No distributed ledger background required  
+        > - No Hiero or Hedera experience needed
+        > - No distributed ledger background required
         > - **Basic Python and Git are sufficient**
 
         > [!NOTE]
-        > ⏱️ **Typical time to complete:** 30–90 minutes (once setup is done)  
-        > 🧩 **Difficulty:** Small, well-contained change  
+        > ⏱️ **Typical time to complete:** 30–90 minutes (once setup is done)
+        > 🧩 **Difficulty:** Small, well-contained change
         > 🎓 **Best for:** New contributors
 
         **🏁 Completion**
@@ -98,7 +98,7 @@ body:
 
         def run_demo():
             """Monolithic token association demo."""
-            print(f"🚀 Connecting to Hedera {network_name} network!")    
+            print(f"🚀 Connecting to Hedera {network_name} network!")
             client = Client(Network(network_name))
             operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
             operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
