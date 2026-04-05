@@ -40,10 +40,10 @@ class FileCreateTransaction(Transaction):
         Initializes a new FileCreateTransaction instance with the specified parameters.
 
         Args:
-            keys (Optional[list[PublicKey]], optional): The keys that are allowed to update/delete the file.
-            contents (Optional[str | bytes], optional): The contents of the file to create. Strings will be automatically encoded as UTF-8 bytes.
-            expiration_time (Optional[Timestamp], optional): The time at which the file should expire.
-            file_memo (Optional[str], optional): A memo to include with the file.
+            keys (list[PublicKey], optional): The keys that are allowed to update/delete the file.
+            contents (str | bytes, optional): The contents of the file to create. Strings will be automatically encoded as UTF-8 bytes.
+            expiration_time (Timestamp, optional): The time at which the file should expire.
+            file_memo (str, optional): A memo to include with the file.
         """
         super().__init__()
         self.keys: list[PublicKey] | None = keys or []
@@ -59,7 +59,7 @@ class FileCreateTransaction(Transaction):
         Helper method to encode string contents to UTF-8 bytes.
 
         Args:
-            contents (Optional[str | bytes]): The contents to encode.
+            contents (str | bytes): The contents to encode.
 
         Returns:
             Optional[bytes]: The encoded contents or None if input is None.
@@ -75,7 +75,7 @@ class FileCreateTransaction(Transaction):
         Sets the keys for this file create transaction.
 
         Args:
-            keys (Optional[list[PublicKey]] | PublicKey): The keys to set for the file. Can be a list of PublicKey objects or None.
+            keys (list[PublicKey] | PublicKey): The keys to set for the file. Can be a list of PublicKey objects or None.
 
         Returns:
             FileCreateTransaction: This transaction instance.
@@ -92,7 +92,7 @@ class FileCreateTransaction(Transaction):
         Sets the contents for this file create transaction.
 
         Args:
-            contents (Optional[str | bytes]): The contents of the file to create. Strings will be automatically encoded as UTF-8 bytes.
+            contents (str | bytes): The contents of the file to create. Strings will be automatically encoded as UTF-8 bytes.
 
         Returns:
             FileCreateTransaction: This transaction instance.
@@ -106,7 +106,7 @@ class FileCreateTransaction(Transaction):
         Sets the expiration time for this file create transaction.
 
         Args:
-            expiration_time (Optional[Timestamp]): The expiration time for the file.
+            expiration_time (Timestamp): The expiration time for the file.
 
         Returns:
             FileCreateTransaction: This transaction instance.
@@ -120,7 +120,7 @@ class FileCreateTransaction(Transaction):
         Sets the memo for this file create transaction.
 
         Args:
-            file_memo (Optional[str]): The memo to set for the file.
+            file_memo (str): The memo to set for the file.
 
         Returns:
             FileCreateTransaction: This transaction instance.

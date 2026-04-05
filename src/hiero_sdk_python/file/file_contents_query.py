@@ -29,7 +29,7 @@ class FileContentsQuery(Query):
         Initializes a new FileContentsQuery instance with an optional file_id.
 
         Args:
-            file_id (Optional[FileId], optional): The ID of the file to query.
+            file_id (FileId, optional): The ID of the file to query.
         """
         super().__init__()
         self.file_id = file_id
@@ -39,7 +39,7 @@ class FileContentsQuery(Query):
         Sets the ID of the file to query.
 
         Args:
-            file_id (Optional[FileId]): The ID of the file.
+            file_id (FileId): The ID of the file.
 
         Returns:
             FileContentsQuery: Returns self for method chaining.
@@ -106,7 +106,7 @@ class FileContentsQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
-            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
+            timeout (int | float, optional): The total execution timeout (in seconds) for this execution.
 
         Returns:
             str: The contents of the file from the network

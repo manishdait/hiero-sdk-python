@@ -61,11 +61,11 @@ class FileAppendTransaction(Transaction):
         Initializes a new FileAppendTransaction instance with the specified parameters.
 
         Args:
-            file_id (Optional[FileId], optional): The ID of the file to append to.
-            contents (Optional[str | bytes], optional): The contents to append to the file.
+            file_id (FileId, optional): The ID of the file to append to.
+            contents (str | bytes, optional): The contents to append to the file.
             Strings will be automatically encoded as UTF-8 bytes.
-            max_chunks (Optional[int], optional): Maximum number of chunks allowed. Defaults to 20.
-            chunk_size (Optional[int], optional): Size of each chunk in bytes. Defaults to 4096.
+            max_chunks (int, optional): Maximum number of chunks allowed. Defaults to 20.
+            chunk_size (int, optional): Size of each chunk in bytes. Defaults to 4096.
         """
         super().__init__()
         self.file_id: FileId | None = file_id
@@ -85,10 +85,10 @@ class FileAppendTransaction(Transaction):
         Helper method to encode string contents to UTF-8 bytes.
 
         Args:
-            contents (Optional[str | bytes]): The contents to encode.
+            contents (str | bytes): The contents to encode.
 
         Returns:
-            Optional[bytes]: The encoded contents or None if input is None.
+            bytes | None: The encoded contents or None if input is None.
         """
         if contents is None:
             return None
@@ -135,7 +135,7 @@ class FileAppendTransaction(Transaction):
         Sets the contents for this file append transaction.
 
         Args:
-            contents (Optional[str | bytes]): The contents to append to the file.
+            contents (str | bytes): The contents to append to the file.
                 Strings will be automatically encoded as UTF-8 bytes.
 
         Returns:
