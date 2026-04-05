@@ -3,7 +3,7 @@
 Welcome to the Hiero Python SDK! To ensure a smooth, safe, and professional contribution experience, this repository relies heavily on **GitHub Workflows**. This guide explains the foundational concepts of repository automation and how it helps you as a contributor.
 
 ### What is a Workflow?
-A workflow is an automated process that is **event-driven**. It stays inactive until a specific "Trigger" occurs. 
+A workflow is an automated process that is **event-driven**. It stays inactive until a specific "Trigger" occurs.
 
 *   **The Trigger:** This is the **"When"** (e.g., someone comments `/assign` on an issue).
 *   **The Logic:** This is the **"How"** (e.g., the system checks if you are eligible and then assigns you).
@@ -11,7 +11,7 @@ A workflow is an automated process that is **event-driven**. It stays inactive u
 ---
 
 ## The Anatomy of a Hiero Workflow
-Every workflow in this repository follows a standardized design pattern to maintain security and consistency. 
+Every workflow in this repository follows a standardized design pattern to maintain security and consistency.
 
 #### 1. Job Title
 Every workflow defines one or more **Jobs**. These are the top-level tasks (like `lint`, `test`, or `assign`). You can see these names in the "Actions" tab of the repository to track the progress of your contribution.
@@ -53,7 +53,7 @@ With over 30 workflows running in this repository, automation is the backbone of
 ---
 
 ## Case Study: The Auto-Assignment Bot
-A great example of these concepts in action is our **Beginner Assignment Bot**. 
+A great example of these concepts in action is our **Beginner Assignment Bot**.
 
 1.  **The Trigger:** A contributor types `/assign` on an issue.
 2.  **The Logic:** The workflow calls `bot-beginner-assign-on-comment.js`. This "brain" checks if the issue is already taken and verifies the contributor's history.

@@ -2,18 +2,18 @@
 
 Building on the basics from [01-what-are-workflows.md](./01-what-are-workflows.md), this document explains **exactly how** we structure workflows in the Hiero Python SDK repository.
 
-We use a very deliberate pattern called **Orchestration vs. Logic separation**.  
+We use a very deliberate pattern called **Orchestration vs. Logic separation**.
 This makes it much easier for you (and future contributors) to **create**, **tweak**, **understand**, and **maintain** automations.
 
 ## The Simple Flow
 
-1. Something happens on GitHub  
+1. Something happens on GitHub
    (someone comments `/assign`, a PR is opened, code is pushed…)
 
 2. ↓
 
-3. The **workflow (.yml)** wakes up and quickly decides:  
-   “Should this run right now?”  
+3. The **workflow (.yml)** wakes up and quickly decides:
+   “Should this run right now?”
    (based on event type, branch, labels, etc.)
 
 4. ↓
@@ -22,12 +22,12 @@ This makes it much easier for you (and future contributors) to **create**, **twe
 
 6. ↓
 
-7. The **script** does all the real work  
+7. The **script** does all the real work
    (reads details, thinks, decides, talks to GitHub, writes comments…)
 
 8. ↓
 
-9. Results show up in GitHub  
+9. Results show up in GitHub
    (comment posted, label added, check passed/failed, log messages…)
 
 ## Two Folders – Two Very Different Jobs
@@ -55,7 +55,7 @@ Responsible for:
 - Wiring **inputs**, **environment variables**, **secrets**
 - Calling the script (usually via `actions/github-script`)
 
-Should contain **almost zero decision-making logic**.  
+Should contain **almost zero decision-making logic**.
 Complex `if:` conditions, string parsing, API calls, etc. do **not** belong here.
 
 ### Scripts (.github/scripts/*.js) – Business Logic
@@ -78,16 +78,16 @@ We deliberately name workflows and their scripts **very similarly** so you can i
 
 Examples from the repository:
 
-- `.github/workflows/bot-gfi-assign-on-comment.yml`  
+- `.github/workflows/bot-gfi-assign-on-comment.yml`
   → `.github/scripts/bot-gfi-assign-on-comment.js`
 
 This makes scanning `.github/` much faster when you want to understand or fix something.
 
 ## Best Practices Summary
 
-- **Workflows** should have a **good, descriptive title**  
-  (the `name:` field – it appears in the Actions tab and in PR checks)  
-  Good: `Beginner Issues – Auto-assign when /assign is commented`  
+- **Workflows** should have a **good, descriptive title**
+  (the `name:` field – it appears in the Actions tab and in PR checks)
+  Good: `Beginner Issues – Auto-assign when /assign is commented`
   Bad: `assign`
 
 - **Scripts** should be **well documented**:
@@ -98,4 +98,3 @@ This makes scanning `.github/` much faster when you want to understand or fix so
     // Purpose: Assigns a good-first-issue only if it's still free and correctly labeled
     // Allowed only via /assign command in issue comments
     ```
-    
