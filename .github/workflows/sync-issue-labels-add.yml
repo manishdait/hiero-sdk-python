@@ -125,4 +125,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: ${{ steps.read.outputs.labels_multiline }}
           number: ${{ steps.read.outputs.pr_number }}
-
