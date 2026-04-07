@@ -22,6 +22,8 @@ Features:
 Run: python generate_proto.py -vv or with trace logs: python generate_proto.py -vvv
 """
 
+from __future__ import annotations
+
 import logging
 import re
 import shutil
@@ -30,6 +32,7 @@ import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import urlparse
+
 
 VERSION = "v0.72.0-rc.2"
 SOURCES = [

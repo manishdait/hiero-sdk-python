@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 Tests for TransactionResponse behavior.
 
@@ -9,6 +10,9 @@ Includes receipt handling, record queries, and validation scenarios.
 # no-member is disabled because Protobuf uses runtime descriptors
 # no-name-in-module is disabled above because of the dynamic nature of the generated protobuf
 
+=======
+from __future__ import annotations
+>>>>>>> 624e80d (chore: added the isort rules)
 
 import pytest
 
