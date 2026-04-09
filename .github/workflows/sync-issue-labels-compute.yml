@@ -203,8 +203,8 @@ jobs:
               inputs: {
                 upstream_run_id: "${{ github.run_id }}",
                 pr_number: "${{ needs.compute-labels.outputs.pr_number }}",
-                dry_run: "false",
-                is_fork_pr: "false"
+                dry_run: false,
+                is_fork_pr: false
               }
             });
 
