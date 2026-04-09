@@ -189,6 +189,16 @@ jobs:
     needs: compute-labels
     runs-on: ubuntu-latest
     steps:
+      - name: Check Token Presence
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::GH_ACCESS_TOKEN is missing! If this is a Fork PR, secrets are disabled by GitHub."
+            exit 1
+          else
+            echo "Token is present."
+          fi
+        env:
+          TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
       - name: Trigger add workflow
         uses: step-security/workflow-dispatch@acca1a315af3bf7f33dd116d3cb405cb83f5cbdc # v1.2.8
         with:
