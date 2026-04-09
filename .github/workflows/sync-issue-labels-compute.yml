@@ -185,7 +185,7 @@ jobs:
           path: labels.json
           retention-days: 1
 
-dispatch-add:
+  dispatch-add:
     needs: compute-labels
     runs-on: ubuntu-latest
     steps:
