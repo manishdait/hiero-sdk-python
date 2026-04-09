@@ -1,4 +1,4 @@
-name: Sync Linked Issue Labels
+name: Sync Linked Issue Labels - Compute
 
 on:
   pull_request:
