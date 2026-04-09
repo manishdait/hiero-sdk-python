@@ -117,6 +117,14 @@ jobs:
             echo "apply=true" >> "$GITHUB_OUTPUT"
             echo "reason=" >> "$GITHUB_OUTPUT"
           fi
+        
+      - name: Debug Output
+        run: |
+          echo "Apply Flag: ${{ steps.should_apply.outputs.apply }}"
+          echo "Reason: ${{ steps.should_apply.outputs.reason }}"
+          echo "PR Number: ${{ steps.read.outputs.pr_number }}"
+          echo "Labels to be added:"
+          echo "${{ steps.read.outputs.labels_multiline }}"
 
       - name: Add labels to PR
         if: ${{ steps.should_apply.outputs.apply == 'true' }}
