@@ -1,7 +1,7 @@
 name: Compute Linked Issue Labels
 
 on:
-  pull_request: # Switched to target to allow secret access for fork PRs
+  pull_request:
     types: [opened, edited, reopened, synchronize, ready_for_review]
   workflow_dispatch:
     inputs:
@@ -42,7 +42,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
           REQUESTED_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && format('{0}', github.event.inputs['dry-run-enabled']) || 'false' }}
-          # Logic: If it's pull_request_target, we check if head repo is a fork
           IS_FORK_PR: 'false'
         uses: actions/github-script@v7
         with:
@@ -111,6 +110,7 @@ jobs:
         with:
           name: pr-labels-${{ steps.compute.outputs.pr_number }}
           path: labels.json
+          retention-days: 1
 
   dispatch-add:
     needs: compute-labels
@@ -124,11 +124,17 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const targetRef = context.payload.pull_request 
+              ? context.payload.pull_request.base.ref 
+              : 'main';
+
+            console.log(`Dispatching to branch: ${targetRef}`);
+            
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'sync-issue-labels-add.yml',
-              ref: 'main',
+              ref: targetRef,
               inputs: {
                 upstream_run_id: "${{ github.run_id }}",
                 pr_number: "${{ needs.compute-labels.outputs.pr_number }}",
