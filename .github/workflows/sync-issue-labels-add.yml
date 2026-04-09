@@ -104,10 +104,7 @@ jobs:
       - name: Determine if labels should be applied
         id: should_apply
         run: |
-          if [ "${{ steps.read.outputs.is_fork_pr }}" = "true" ]; then
-            echo "apply=false" >> "$GITHUB_OUTPUT"
-            echo "reason=fork PR" >> "$GITHUB_OUTPUT"
-          elif [ "${{ steps.validate.outputs.valid_payload }}" != "true" ]; then
+          if [ "${{ steps.validate.outputs.valid_payload }}" != "true" ]; then
             echo "apply=false" >> "$GITHUB_OUTPUT"
             echo "reason=invalid payload" >> "$GITHUB_OUTPUT"
           elif [ "${{ steps.read.outputs.source_event }}" = "workflow_dispatch" ] && [ "${{ steps.read.outputs.dry_run }}" = "true" ]; then
