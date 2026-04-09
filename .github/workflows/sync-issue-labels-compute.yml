@@ -1,144 +1,110 @@
-name: Compute Linked Issue Labels
+name: Sync Linked Issue Labels
 
 on:
   pull_request:
-    types: [opened, edited, reopened, synchronize, ready_for_review]
-  workflow_dispatch:
-    inputs:
-      pr_number:
-        description: "PR number to sync labels for"
-        required: true
-        type: number
-      dry-run-enabled:
-        description: "Dry run (log only, do not apply labels)"
-        required: false
-        type: boolean
-        default: true
+    types: [opened, edited, reopened, synchronize]
 
 permissions:
-  actions: write
-  pull-requests: read
+  pull-requests: write
   issues: read
   contents: read
 
 jobs:
-  compute-labels:
+  sync:
     runs-on: ubuntu-latest
-    outputs:
-      pr_number: ${{ steps.compute.outputs.pr_number }}
-      dry_run: ${{ steps.compute.outputs.dry_run }}
-      is_fork_pr: ${{ steps.compute.outputs.is_fork_pr }}
-      has_labels: ${{ steps.compute.outputs.has_labels }}
-      is_bot: ${{ steps.compute.outputs.is_bot }}
     steps:
-      - name: Harden the runner
-        uses: step-security/harden-runner@v2
+      - name: Harden Runner
+        uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176 # v2.17.0
         with:
           egress-policy: audit
 
-      - name: Compute linked issue labels
+      - name: Compute Labels
         id: compute
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
-          REQUESTED_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && format('{0}', github.event.inputs['dry-run-enabled']) || 'false' }}
-          IS_FORK_PR: 'false'
-        uses: actions/github-script@v7
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
-          result-encoding: json
           script: |
-            const prNumber = Number(process.env.PR_NUMBER);
+            const prNumber = context.payload.pull_request.number;
+            console.log(`--- Processing PR #${prNumber} ---`);
+
             const { data: prData } = await github.rest.pulls.get({
               owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber
             });
 
-            const prAuthor = (prData.user && prData.user.login) || "";
-            const isBot = /\[bot\]$/i.test(prAuthor) || /dependabot/i.test(prAuthor);
-            core.setOutput('is_bot', String(isBot));
-            
-            if (isBot) {
-              core.setOutput('has_labels', 'false');
+            const prAuthor = prData.user.login;
+            if (/\[bot\]$/i.test(prAuthor) || /dependabot/i.test(prAuthor)) {
+              console.log(`Skipping bot-authored PR (Author: ${prAuthor})`);
+              core.setOutput('skip', 'true');
               return;
             }
 
             const regex = /(?:fix|fixes|fixed|close|closes|closed|resolve|resolves|resolved)[:\s]+\s*#(\d+)\b/gi;
-            const numbers = new Set();
-            let m;
-            while ((m = regex.exec(prData.body || "")) !== null) {
-              numbers.add(Number(m[1]));
+            const issueNumbers = new Set();
+            let match;
+            while ((match = regex.exec(prData.body || "")) !== null) {
+              issueNumbers.add(Number(match[1]));
             }
 
-            const linkedIssues = Array.from(numbers);
-            const allLabels = [];
-            for (const num of linkedIssues) {
+            if (issueNumbers.size === 0) {
+              console.log("No linked issues found in the PR description.");
+              core.setOutput('has_new_labels', 'false');
+              core.setOutput('skip', 'false');
+              return;
+            }
+            console.log(`Detected linked issues: #${Array.from(issueNumbers).join(', #')}`);
+
+            const discoveredLabels = new Set();
+            for (const num of issueNumbers) {
               try {
-                const { data } = await github.rest.issues.get({
+                const { data: issue } = await github.rest.issues.get({
                   owner: context.repo.owner, repo: context.repo.repo, issue_number: num
                 });
-                if (!data.pull_request) {
-                  const names = (data.labels || []).map(l => typeof l === 'string' ? l : l.name);
-                  allLabels.push(...names);
+                if (!issue.pull_request) {
+                  const names = (issue.labels || []).map(l => typeof l === 'string' ? l : l.name);
+                  console.log(`Found labels on issue #${num}: [${names.join(', ')}]`);
+                  names.forEach(l => discoveredLabels.add(l));
+                } else {
+                  console.log(`Skipping #${num} because it is a Pull Request, not an Issue.`);
                 }
-              } catch (e) { console.log(`Error fetching #${num}`); }
+              } catch (e) { 
+                console.log(`Error fetching labels for issue #${num}: ${e.message}`); 
+              }
             }
 
-            const deduped = Array.from(new Set(allLabels));
-            core.setOutput('has_labels', deduped.length > 0 ? 'true' : 'false');
-            core.setOutput('labels', JSON.stringify(deduped));
-            core.setOutput('pr_number', String(prNumber));
-            core.setOutput('dry_run', process.env.REQUESTED_DRY_RUN);
-            core.setOutput('is_fork_pr', String(process.env.IS_FORK_PR));
-            core.setOutput('source_event', context.eventName);
+            const currentLabels = (prData.labels || []).map(l => typeof l === 'string' ? l : l.name);
+            console.log(`Current PR labels: [${currentLabels.join(', ')}]`);
 
-      - name: Write labels artifact
-        if: steps.compute.outputs.has_labels == 'true'
-        run: |
-          # The Add workflow specifically looks for "artifacts/labels.json"
-          # We construct exactly what its 'Read labels payload' step expects
-          echo '${{ steps.compute.outputs.labels }}' > labels_only.json
-          echo "{" > labels.json
-          echo "  \"pr_number\": \"${{ steps.compute.outputs.pr_number }}\"," >> labels.json
-          echo "  \"labels\": $(cat labels_only.json)," >> labels.json
-          echo "  \"is_fork_pr\": ${{ steps.compute.outputs.is_fork_pr }}," >> labels.json
-          echo "  \"dry_run\": \"${{ steps.compute.outputs.dry_run }}\"," >> labels.json
-          echo "  \"source_event\": \"workflow_dispatch\"" >> labels.json
-          echo "}" >> labels.json
-
-      - name: Upload
-        if: steps.compute.outputs.has_labels == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: pr-labels-${{ steps.compute.outputs.pr_number }}
-          path: labels.json
-          retention-days: 1
-
-  dispatch-add:
-    needs: compute-labels
-    if: |
-      needs.compute-labels.outputs.is_bot != 'true' && 
-      needs.compute-labels.outputs.has_labels == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger add workflow
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GH_ACCESS_TOKEN }}
-          script: |
-            const targetRef = context.payload.pull_request 
-              ? context.payload.pull_request.base.ref 
-              : 'main';
-
-            console.log(`Dispatching to branch: ${targetRef}`);
+            const newLabels = Array.from(discoveredLabels).filter(label => !currentLabels.includes(label));
             
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'sync-issue-labels-add.yml',
-              ref: targetRef,
-              inputs: {
-                upstream_run_id: "${{ github.run_id }}",
-                pr_number: "${{ needs.compute-labels.outputs.pr_number }}",
-                dry_run: "${{ needs.compute-labels.outputs.dry_run }}",
-                is_fork_pr: "${{ needs.compute-labels.outputs.is_fork_pr }}"
-              }
-            });
+            if (newLabels.length > 0) {
+              console.log(`New labels to be added: [${newLabels.join(', ')}]`);
+            } else {
+              console.log("No new labels discovered (all found labels are already present).");
+            }
+
+            core.setOutput('labels', JSON.stringify(newLabels));
+            core.setOutput('has_new_labels', newLabels.length > 0 ? 'true' : 'false');
+            core.setOutput('skip', 'false');
+
+      - name: Apply Labels
+        if: steps.compute.outputs.skip == 'false' && steps.compute.outputs.has_new_labels == 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const labels = JSON.parse(`${{ steps.compute.outputs.labels }}`);
+            const prNumber = context.payload.pull_request.number;
+
+            console.log(`Executing label application for PR #${prNumber}...`);
+            
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: labels
+              });
+              console.log("Successfully applied labels!");
+            } catch (e) {
+              console.log(`Failed to apply labels: ${e.message}`);
+              core.setFailed(e.message);
+            }
