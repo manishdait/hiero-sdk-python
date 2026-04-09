@@ -196,7 +196,7 @@ jobs:
           workflow: .github/workflows/sync-issue-labels-add.yml
           repo: ${{ github.repository }}
           ref: main
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           inputs: >-
             {
               "upstream_run_id":"${{ github.run_id }}",
@@ -204,3 +204,5 @@ jobs:
               "dry_run":"${{ needs.compute-labels.outputs.dry_run }}",
               "is_fork_pr":"${{ needs.compute-labels.outputs.is_fork_pr }}"
             }
+
+
