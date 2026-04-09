@@ -187,7 +187,7 @@ jobs:
 
   dispatch-add:
     needs: compute-labels
-    if: ${{ needs.compute-labels.outputs.is_fork_pr != 'true' }}
+    # if: ${{ needs.compute-labels.outputs.is_fork_pr != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Trigger add workflow
