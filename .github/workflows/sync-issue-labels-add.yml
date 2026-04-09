@@ -27,6 +27,8 @@ defaults:
 permissions:
   actions: read
   issues: write
+  contents: read
+  pull-requests: write
 
 jobs:
   add-labels:
