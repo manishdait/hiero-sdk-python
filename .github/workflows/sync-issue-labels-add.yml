@@ -14,23 +14,23 @@ jobs:
     
     steps:
       - name: Download Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: pr-labels-${{ github.event.workflow_run.pull_requests[0].number }}
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Apply Labels
-        uses: actions/github-script@v7
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
             const fs = require('fs');
-            if (!fs.existsSync('labels_payload.json')) {
+            if (!fs.existsSync('labels.json')) {
                console.log("No payload file found. Nothing to apply.");
                return;
             }
 
-            const data = JSON.parse(fs.readFileSync('labels_payload.json', 'utf8'));
+            const data = JSON.parse(fs.readFileSync('labels.json', 'utf8'));
             console.log(`Applying labels to PR #${data.pr_number}: ${data.labels.join(', ')}`);
             
             await github.rest.issues.addLabels({
