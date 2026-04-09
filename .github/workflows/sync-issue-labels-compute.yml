@@ -1,39 +1,41 @@
-name: Sync Linked Issue Labels
+name: Sync Linked Issue Labels - Compute
 
 on:
   pull_request:
     types: [opened, edited, reopened, synchronize]
 
 permissions:
-  pull-requests: write
   issues: read
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2
+        uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176 # v2.17.0
         with:
           egress-policy: audit
 
-      - name: Compute and Apply Labels
-        uses: actions/github-script@v7
+      - name: Compute Labels
+        id: compute
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const prNumber = context.payload.pull_request.number;
-            
+            console.log(`--- Processing PR #${prNumber} ---`);
+
             const { data: prData } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber
+              owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber
             });
 
             const prAuthor = prData.user.login;
             if (/\[bot\]$/i.test(prAuthor) || /dependabot/i.test(prAuthor)) {
-              console.log("Skipping bot PR.");
+              console.log(`Skipping bot-authored PR (Author: ${prAuthor})`);
               return;
             }
 
@@ -45,37 +47,59 @@ jobs:
             }
 
             if (issueNumbers.size === 0) {
-              console.log("No linked issues found.");
+              console.log("No linked issues found in the PR description.");
               return;
             }
 
-            const labelsToAdd = new Set();
+            console.log(`Detected linked issues: #${Array.from(issueNumbers).join(', #')}`);
+
+            const discoveredLabels = new Set();
             for (const num of issueNumbers) {
               try {
                 const { data: issue } = await github.rest.issues.get({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: num
+                  owner: context.repo.owner, repo: context.repo.repo, issue_number: num
                 });
-
                 if (!issue.pull_request) {
-                  issue.labels.forEach(l => labelsToAdd.add(typeof l === 'string' ? l : l.name));
+                  const names = (issue.labels || []).map(l => typeof l === 'string' ? l : l.name);
+                  console.log(`Found labels on issue #${num}: [${names.join(', ')}]`);
+                  names.forEach(l => discoveredLabels.add(l));
+                } else {
+                  console.log(`Skipping #${num} because it is a Pull Request, not an Issue.`);
                 }
-              } catch (e) {
-                console.log(`Could not fetch labels for issue #${num}`);
+              } catch (e) { 
+                console.log(`Error fetching labels for issue #${num}: ${e.message}`); 
               }
             }
 
-            if (labelsToAdd.size > 0) {
-              const labelList = Array.from(labelsToAdd);
-              console.log(`Adding labels: ${labelList.join(', ')}`);
-              
-              await github.rest.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: prNumber,
-                labels: labelList
-              });
+            const currentLabels = (prData.labels || []).map(l => typeof l === 'string' ? l : l.name);
+            console.log(`Current PR labels: [${currentLabels.join(', ')}]`);
+
+            const newLabels = Array.from(discoveredLabels).filter(label => !currentLabels.includes(label));
+            
+            if (newLabels.length > 0) {
+              console.log(`New labels to be added: [${newLabels.join(', ')}]`);
             } else {
-              console.log("No labels discovered from linked issues.");
+              console.log("No new labels discovered (all found labels are already present).");
             }
+
+            const fs = require('fs');
+            const result = { pr_number: prNumber, labels: newLabels };
+            fs.writeFileSync('labels.json', JSON.stringify(result));
+            console.log(`Calculated labels: ${newLabels.join(', ')}`);
+
+      - name: Check for Labels File
+        id: check_file
+        run: |
+          if [ -f labels.json ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Upload Artifact
+        if: steps.check_file.outputs.exists == 'true'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: pr-labels-data
+          path: labels.json
+          retention-days: 1
