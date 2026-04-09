@@ -5,9 +5,12 @@ on:
     types: [opened, edited, reopened, synchronize]
 
 permissions:
-  pull-requests: write
   issues: read
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   sync:
@@ -99,9 +102,9 @@ jobs:
             exit 0
           fi
       
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: success()
         with:
-          name: pr-labels-${{ github.event.pull_request.number }}
+          name: pr-labels-data
           path: labels.json
           retention-days: 1
