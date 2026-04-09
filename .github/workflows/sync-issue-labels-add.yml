@@ -86,7 +86,6 @@ jobs:
           fi
 
       - name: Debug Output
-        if: always() # This ensures you ALWAYS see the logs even if the job fails or skips
         run: |
           echo "-----------------------------------"
           echo "DEBUG INFO:"
