@@ -27,6 +27,8 @@ defaults:
 permissions:
   actions: read
   issues: write
+  contents: read
+  pull-requests: write
 
 jobs:
   add-labels:
@@ -125,4 +127,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: ${{ steps.read.outputs.labels_multiline }}
           number: ${{ steps.read.outputs.pr_number }}
-
