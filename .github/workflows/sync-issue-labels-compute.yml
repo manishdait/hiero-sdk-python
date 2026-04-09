@@ -99,7 +99,6 @@ jobs:
       - name: Upload Artifact
         if: steps.check_file.outputs.exists == 'true'
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        if: success()
         with:
           name: pr-labels-data
           path: labels.json
