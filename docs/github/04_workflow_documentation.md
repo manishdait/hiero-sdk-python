@@ -64,15 +64,15 @@ jobs:
   gfi-assign:
     if: github.event.issue.pull_request == null
     runs-on: hl-sdk-py-lin-md
-    
+
     concurrency:
       group: gfi-assign-${{ github.event.issue.number }}
       cancel-in-progress: false
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6.0.1
-      
+
       - name: Run GFI /assign handler
         uses: actions/github-script@v8.0.0
         with:
@@ -101,13 +101,13 @@ permissions:
 jobs:
   changelog-check:
     runs-on: hl-sdk-py-lin-md
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6.0.1
         with:
           fetch-depth: 0
-      
+
       - name: Run changelog validation
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -227,31 +227,31 @@ function getSkillLevel(issueLabels) {
 ```javascript
 /**
  * Determines the contributor difficulty tier from issue labels.
- * 
+ *
  * Assumes exactly one skill label should be present on the issue.
  * If multiple skill labels exist, the first match in priority order is returned.
  * Returns null if no skill label is found, which triggers maintainer escalation
  * notifications.
- * 
+ *
  * @param {string[]} issueLabels - List of GitHub label strings on the issue
- * @returns {string|null} Skill level identifier (Good First Issue, Beginner, 
+ * @returns {string|null} Skill level identifier (Good First Issue, Beginner,
  *                        Intermediate, Advanced) or null if no skill label found
- * 
+ *
  * @sideEffects None. This is a pure function that only reads labels.
- * 
+ *
  * @edgeCases
  * - Multiple skill labels: Priority order is Good First Issue > Beginner > Intermediate > Advanced
  * - No labels: Returns null (expected to trigger escalation)
  */
 function determineContributorSkillLevelFromLabels(issueLabels) {
   const skillLabels = ['Good First Issue', 'Beginner', 'Intermediate', 'Advanced'];
-  
+
   for (const skillLabel of skillLabels) {
     if (issueLabels.includes(skillLabel)) {
       return skillLabel;
     }
   }
-  
+
   return null;
 }
 ```
@@ -261,21 +261,21 @@ function determineContributorSkillLevelFromLabels(issueLabels) {
 ```javascript
 /**
  * Extracts listed skill prerequisites from the issue body.
- * 
+ *
  * Looks for a "## Prerequisites" section and parses the checklist items.
- * 
+ *
  * @assumptions
  * - Prerequisites section format is consistent with issue templates
  * - Each prerequisite is a checklist item (- [ ] or - [x])
  * - Unknown prerequisites are skipped with a warning log
- * 
+ *
  * @param {string} issueBody - The markdown text of the GitHub issue
  * @returns {string[]} List of prerequisite identifiers found in the issue
- * 
+ *
  * @sideEffects
  * - Logs warnings for unrecognized prerequisites via console.warn
  * - Does NOT validate if prerequisites are met
- * 
+ *
  * @edgeCases
  * - Missing "## Prerequisites" section returns empty array
  * - Malformed lines in prerequisites are skipped silently
@@ -331,21 +331,21 @@ async function validateAssignmentPrerequisites(contributorId, issue, github) {
     console.warn(`Contributor ${contributorId} not found or inactive`);
     return false;
   }
-  
+
   /* Exit condition 2: Verify issue has required skill labels */
   const skillLabels = extractSkillLabels(issue);
   if (skillLabels.length === 0) {
     console.error(`Issue ${issue.number} missing skill level label`);
     return false;
   }
-  
+
   /* Exit condition 3: Check contributor skill matches issue requirement */
   const requiredSkill = skillLabels[0];
   if (!contributorHasSkill(contributorId, requiredSkill)) {
     console.info(`Contributor ${contributorId} lacks skill: ${requiredSkill}`);
     return false;
   }
-  
+
   return true;
 }
 ```
@@ -425,7 +425,7 @@ async function transitionIssueLabelsOnAssignment(issue, oldSkillLevel, newSkillL
 
 ---
 
-Great workflow documentation follows a simple principle: separate orchestration from logic. 
+Great workflow documentation follows a simple principle: separate orchestration from logic.
 
 - **Workflow YAML files** document triggers and script references
 - **Script files** document major rules and implementation details
