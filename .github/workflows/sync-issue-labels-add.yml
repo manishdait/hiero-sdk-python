@@ -85,8 +85,6 @@ jobs:
             echo "reason=Validated and ready" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Debug Output
-        run: |
           echo "-----------------------------------"
           echo "DEBUG INFO:"
           echo "Apply Flag: ${{ steps.should_apply.outputs.apply }}"
@@ -96,6 +94,7 @@ jobs:
           echo "Labels Found:"
           echo "${{ steps.read.outputs.labels_multiline }}"
           echo "-----------------------------------"
+          
 
       - name: Add labels to PR
         if: steps.should_apply.outputs.apply == 'true'
