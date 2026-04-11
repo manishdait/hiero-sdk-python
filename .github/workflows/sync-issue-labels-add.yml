@@ -35,6 +35,12 @@ jobs:
             }
 
             const data = JSON.parse(fs.readFileSync('labels.json', 'utf8'));
+
+            if (!data.labels || data.labels.length === 0) {
+              console.log(`SKIPPING: PR #${data.pr_number} already has all labels or no labels were found.`);
+              return;
+            }
+
             console.log(`Applying labels to PR #${data.pr_number}: ${data.labels.join(', ')}`);
             
             await github.rest.issues.addLabels({
