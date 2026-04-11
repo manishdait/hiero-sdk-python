@@ -79,7 +79,8 @@ jobs:
             if (newLabels.length > 0) {
               console.log(`New labels to be added: [${newLabels.join(', ')}]`);
             } else {
-              console.log("No new labels discovered (all found labels are already present).");
+              console.log("No new labels to add. Skipping artifact creation");
+              return;
             }
 
             const fs = require('fs');
