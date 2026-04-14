@@ -31,7 +31,7 @@ class TopicMessageQuery:
         """
         Initializes a TopicMessageQuery.
         """
-        self._topic_id: Optional[TopicId] = self._parse_topic_id(topic_id) if topic_id else None
+        self._topic_id: Optional[basic_types_pb2.TopicID] = self._parse_topic_id(topic_id) if topic_id else None
         self._start_time: Optional[timestamp_pb2.Timestamp] = self._parse_timestamp(start_time) if start_time else None
         self._end_time: Optional[timestamp_pb2.Timestamp] = self._parse_timestamp(end_time) if end_time else None
         self._limit: Optional[int] = limit
@@ -61,13 +61,11 @@ class TopicMessageQuery:
         Parses a topic ID from a string or TopicId object into a protobuf TopicID.
         """
         if isinstance(topic_id, str):
-            parts = topic_id.strip().split(".")
-            if len(parts) != 3:
-                raise ValueError(f"Invalid topic ID string: {topic_id}")
-            shard, realm, topic = map(int, parts)
-            return basic_types_pb2.TopicID(shardNum=shard, realmNum=realm, topicNum=topic)
-        elif isinstance(topic_id, TopicId):
+            topic_id = TopicId.from_string(topic_id)
+        
+        if isinstance(topic_id, TopicId):
             return topic_id._to_proto()
+        
         else:
             raise TypeError("Invalid topic_id format. Must be a string or TopicId.")
 
@@ -99,6 +97,9 @@ class TopicMessageQuery:
 
     def set_chunking_enabled(self, enabled: bool) -> "TopicMessageQuery":
         """Enables or disables chunking for multi-chunk messages."""
+        if not isinstance(enabled, bool):
+            raise TypeError(f"chunking_enabled must be a boolean, got {type(enabled).__name__}")
+
         self._chunking_enabled = enabled
         return self
 
@@ -121,6 +122,7 @@ class TopicMessageQuery:
         if self._end_time:
             request.consensusEndTime.CopyFrom(self._end_time)
         if self._limit is not None:
+            # If not set or set to zero it will return messages indefinitely.
             request.limit = self._limit
 
         subscription_handle = SubscriptionHandle()
