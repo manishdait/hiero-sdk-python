@@ -23,7 +23,9 @@ import sys
 from dotenv import load_dotenv
 
 from hiero_sdk_python import AccountId, Client, Network, PrivateKey
+from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.address_book.endpoint import Endpoint
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.nodes.node_create_transaction import NodeCreateTransaction
 from hiero_sdk_python.nodes.node_update_transaction import NodeUpdateTransaction
 from hiero_sdk_python.response_code import ResponseCode
@@ -60,12 +62,8 @@ def setup_client():
     return client
 
 
-def create_node(client):
+def create_node(client, account_id):
     """Create a node on the network and return its ID and admin key."""
-    # Node account ID - this should be an existing account
-    # that will be associated with the node
-    account_id = AccountId.from_string("0.0.5")
-
     # Node description
     description = "Example node"
 
@@ -108,11 +106,8 @@ def create_node(client):
     return receipt.node_id, admin_key
 
 
-def update_node(client, node_id, admin_key):
+def update_node(client, node_id, admin_key, account_id, node_account_pk):
     """Update an existing node with new parameters."""
-    # Node account ID
-    account_id = AccountId.from_string("0.0.5")
-
     # Updated node description
     updated_description = "Updated example node"
 
@@ -140,6 +135,7 @@ def update_node(client, node_id, admin_key):
         .set_decline_reward(False)
         .freeze_with(client)
         .sign(admin_key)  # Sign with the admin key
+        .sign(node_account_pk)
         .execute(client)
     )
 
@@ -163,11 +159,17 @@ def node_update():
     # Set up client with operator account
     client = setup_client()
 
+    # Node account ID
+    node_account_pk = PrivateKey.generate_ed25519()
+    account_id = (
+        AccountCreateTransaction().set_key_without_alias(node_account_pk).set_initial_balance(Hbar(1)).execute(client)
+    ).account_id
+
     # Create a new node and get its ID and admin key
-    node_id, admin_key = create_node(client)
+    node_id, admin_key = create_node(client, account_id)
 
     # Update the newly created node with modified parameters
-    update_node(client, node_id, admin_key)
+    update_node(client, node_id, admin_key, account_id, node_account_pk)
 
     print("\nNode creation and update example completed successfully!")
 

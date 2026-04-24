@@ -23,7 +23,9 @@ import sys
 from dotenv import load_dotenv
 
 from hiero_sdk_python import AccountId, Client, Network, PrivateKey
+from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.address_book.endpoint import Endpoint
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.nodes.node_create_transaction import NodeCreateTransaction
 from hiero_sdk_python.nodes.node_delete_transaction import NodeDeleteTransaction
 from hiero_sdk_python.response_code import ResponseCode
@@ -64,7 +66,12 @@ def create_node(client):
     """Create a node on the network and return its ID and admin key."""
     # Node account ID - this should be an existing account
     # that will be associated with the node
-    account_id = AccountId.from_string("0.0.5")
+    account_id = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate_ed25519())
+        .set_initial_balance(Hbar(1))
+        .execute(client)
+    ).account_id
 
     # Node description
     description = "Example node for deletion"
