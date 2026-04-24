@@ -66,7 +66,7 @@ def node_create():
     # Node account ID - this should be an existing account
     # that will be associated with the node
 
-    account_id = AccountId.from_string("0.0.4")
+    account_id = AccountId.from_string("0.0.5")
 
     # Node description
     description = "Example node"
