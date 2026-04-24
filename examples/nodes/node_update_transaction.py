@@ -111,7 +111,7 @@ def create_node(client):
 def update_node(client, node_id, admin_key):
     """Update an existing node with new parameters."""
     # Node account ID
-    account_id = AccountId.from_string("0.0.4")
+    account_id = AccountId.from_string("0.0.5")
 
     # Updated node description
     updated_description = "Updated example node"
