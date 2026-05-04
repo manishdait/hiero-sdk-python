@@ -3,7 +3,6 @@ name: Primary PR Check - Test Files Naming
 
 on:
   push:
-    branches: [main]
 
 permissions:
   contents: read
