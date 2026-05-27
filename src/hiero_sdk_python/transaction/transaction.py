@@ -647,7 +647,6 @@ class Transaction(_Executable):
         """
         self._require_frozen()
 
-        # Get the transaction protobuf
         transactions_bytes = []
         for value in self._transaction_body_bytes.values():
             sig_map = self._signature_map.get(value)
@@ -664,9 +663,6 @@ class Transaction(_Executable):
         transaction_list = TransactionList()
         transaction_list.transaction_list.extend(transactions_bytes)
 
-        print(transaction_list)
-
-        # Serialize to bytes
         return transaction_list.SerializeToString()
 
     @staticmethod
@@ -742,7 +738,6 @@ class Transaction(_Executable):
         if not transaction_list.transaction_list:
             raise ValueError("TransactionList contains no transactions")
 
-        # This will hold our final, correctly typed subclass instance
         restored_transaction = None
 
         for transaction_proto in transaction_list.transaction_list:
@@ -766,26 +761,21 @@ class Transaction(_Executable):
             if transaction_class is None:
                 raise ValueError(f"Unknown transaction type: {transaction_type}")
 
-            # Reconstruct the specialized subclass for this specific node block
             tmp_transaction = transaction_class._from_protobuf(
                 transaction_body, signed_transaction.bodyBytes, signed_transaction.sigMap
             )
 
             node_id = tmp_transaction.node_account_id
 
-            # Initialize our master transaction instance using the first chunk found
             if restored_transaction is None:
                 restored_transaction = tmp_transaction
-                # Ensure node_account_ids is cleared or synchronized
                 restored_transaction.node_account_ids = [node_id]
 
-                # Copy over state for the first node
                 restored_transaction._transaction_bodies = {node_id: transaction_body}
                 restored_transaction._transaction_body_bytes = {node_id: signed_transaction.bodyBytes}
                 if signed_transaction.sigMap and signed_transaction.sigMap.sigPair:
                     restored_transaction._signature_map = {signed_transaction.bodyBytes: signed_transaction.sigMap}
             else:
-                # Merge sequential node states into the master subclass instance
                 if node_id not in restored_transaction.node_account_ids:
                     restored_transaction.node_account_ids.append(node_id)
 
@@ -795,11 +785,9 @@ class Transaction(_Executable):
                 if signed_transaction.sigMap and signed_transaction.sigMap.sigPair:
                     restored_transaction._signature_map[signed_transaction.bodyBytes] = signed_transaction.sigMap
 
-        # Fallback safeguard
         if restored_transaction is None:
             raise ValueError("No valid transactions could be parsed from the byte stream")
 
-        # Set the active node context to the first one available
         if restored_transaction.node_account_ids:
             restored_transaction.node_account_id = restored_transaction.node_account_ids[0]
 
