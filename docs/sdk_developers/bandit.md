@@ -47,7 +47,7 @@ uv run bandit -c bandit.yml -r src/
 uv run bandit -c bandit.yml -r src/ tck/ tests/
 
 # Run with custom exit code thresholds (e.g., fail ONLY on Medium and High issues)
-uv run bandit -c bandit.yml -ll -r src/
+uv run bandit -c bandit.yml -l -r src/
 
 # Run checks and generate a clean text log report file
 uv run bandit -c bandit.yml -r src/ --format txt --output bandit_report.txt
@@ -81,6 +81,25 @@ subprocess.Popen(["/bin/ls", "-l"], shell=False)  # nosec B602, B607
 
 # Tell Bandit this specific assert statement is intentional and safe
 assert user_role == "admin"  # nosec B101
+```
+
+### Targeted Rule Suppressions
+Instead of disabling a rule globally or littering your files with `# nosec` comments, you can use Bandit's plugin-specific configuration blocks to skip rules for matching file patterns.
+
+```yml
+# bandit.yml
+
+# Global directory exclusions
+exclude_dirs: ['.clusterfuzzlite/**']
+
+# Targeted plugin rule overrides
+assert_used:
+  skips:
+    - '**/tests/**/*.py'
+
+exec_used:
+  skips:
+    - '**/tests/mocks/**/*.py'
 ```
 
 **Global Suppressions:** If a specific rule is completely irrelevant to entire codebase, do not add `# nosec` everywhere. Instead, permanently drop it by adding the error code to the `skips` list inside `bandit.yml` file.
