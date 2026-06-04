@@ -1,9 +1,8 @@
-"""
-NodeCreateTransaction class.
-"""
+"""NodeCreateTransaction class."""
+
+from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.endpoint import Endpoint
@@ -11,11 +10,11 @@ from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.node_create_pb2 import NodeCreateTransactionBody
-from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
-from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
+from hiero_sdk_python.transaction.transaction import Transaction
 
 
 @dataclass
@@ -24,26 +23,27 @@ class NodeCreateParams:
     Represents node attributes that can be set on creation.
 
     Attributes:
-        account_id (Optional[AccountId]): The account ID of the node.
-        description (Optional[str]): The description of the node.
-        gossip_endpoints (List[Endpoint]): The gossip endpoints of the node.
-        service_endpoints (List[Endpoint]): The service endpoints of the node.
-        gossip_ca_certificate (Optional[bytes]): The gossip ca certificate of the node.
-        grpc_certificate_hash (Optional[bytes]): The grpc certificate hash of the node.
-        admin_key (Optional[PublicKey]): The admin key of the node.
-        decline_reward (Optional[bool]): The decline reward of the node.
-        grpc_web_proxy_endpoint (Optional[Endpoint]): The grpc web proxy endpoint of the node.
+        account_id (AccountId, optional): The account ID of the node.
+        description (str, optional): The description of the node.
+        gossip_endpoints (list[Endpoint]): The gossip endpoints of the node.
+        service_endpoints (list[Endpoint]): The service endpoints of the node.
+        gossip_ca_certificate (bytes, optional): The gossip ca certificate of the node.
+        grpc_certificate_hash (bytes, optional): The grpc certificate hash of the node.
+        admin_key (PublicKey, optional): The admin key of the node.
+        decline_reward (bool, optional): The decline reward of the node.
+        grpc_web_proxy_endpoint (Endpoint, optional): The grpc web proxy endpoint of the node.
     """
 
-    account_id: Optional[AccountId] = None
-    description: Optional[str] = None
-    gossip_endpoints: List[Endpoint] = field(default_factory=list)
-    service_endpoints: List[Endpoint] = field(default_factory=list)
-    gossip_ca_certificate: Optional[bytes] = None
-    grpc_certificate_hash: Optional[bytes] = None
-    admin_key: Optional[PublicKey] = None
-    decline_reward: Optional[bool] = None
-    grpc_web_proxy_endpoint: Optional[Endpoint] = None
+    account_id: AccountId | None = None
+    description: str | None = None
+    gossip_endpoints: list[Endpoint] = field(default_factory=list)
+    service_endpoints: list[Endpoint] = field(default_factory=list)
+    gossip_ca_certificate: bytes | None = None
+    grpc_certificate_hash: bytes | None = None
+    admin_key: PublicKey | None = None
+    decline_reward: bool | None = None
+    grpc_web_proxy_endpoint: Endpoint | None = None
+    associated_registered_nodes: list[int] = field(default_factory=list)
 
 
 class NodeCreateTransaction(Transaction):
@@ -57,33 +57,28 @@ class NodeCreateTransaction(Transaction):
     to build and execute a node create transaction.
     """
 
-    def __init__(self, node_create_params: Optional[NodeCreateParams] = None):
+    def __init__(self, node_create_params: NodeCreateParams | None = None):
         """
         Initializes a new NodeCreateTransaction instance with the specified parameters.
 
         Args:
-            node_create_params (Optional[NodeCreateParams]):
+            node_create_params (NodeCreateParams, optional):
                 The parameters for the node create transaction.
         """
         super().__init__()
         node_create_params = node_create_params or NodeCreateParams()
-        self.account_id: Optional[AccountId] = node_create_params.account_id
-        self.description: Optional[str] = node_create_params.description
-        self.gossip_endpoints: List[Endpoint] = node_create_params.gossip_endpoints
-        self.service_endpoints: List[Endpoint] = node_create_params.service_endpoints
-        self.gossip_ca_certificate: Optional[bytes] = (
-            node_create_params.gossip_ca_certificate
-        )
-        self.grpc_certificate_hash: Optional[bytes] = (
-            node_create_params.grpc_certificate_hash
-        )
-        self.admin_key: Optional[PublicKey] = node_create_params.admin_key
-        self.decline_reward: Optional[bool] = node_create_params.decline_reward
-        self.grpc_web_proxy_endpoint: Optional[Endpoint] = (
-            node_create_params.grpc_web_proxy_endpoint
-        )
+        self.account_id: AccountId | None = node_create_params.account_id
+        self.description: str | None = node_create_params.description
+        self.gossip_endpoints: list[Endpoint] = node_create_params.gossip_endpoints
+        self.service_endpoints: list[Endpoint] = node_create_params.service_endpoints
+        self.gossip_ca_certificate: bytes | None = node_create_params.gossip_ca_certificate
+        self.grpc_certificate_hash: bytes | None = node_create_params.grpc_certificate_hash
+        self.admin_key: PublicKey | None = node_create_params.admin_key
+        self.decline_reward: bool | None = node_create_params.decline_reward
+        self.grpc_web_proxy_endpoint: Endpoint | None = node_create_params.grpc_web_proxy_endpoint
+        self.associated_registered_nodes: list[int] = node_create_params.associated_registered_nodes
 
-    def set_account_id(self, account_id: Optional[AccountId]) -> "NodeCreateTransaction":
+    def set_account_id(self, account_id: AccountId | None) -> NodeCreateTransaction:
         """
         Sets the account id for this node create transaction.
 
@@ -98,7 +93,7 @@ class NodeCreateTransaction(Transaction):
         self.account_id = account_id
         return self
 
-    def set_description(self, description: Optional[str]) -> "NodeCreateTransaction":
+    def set_description(self, description: str | None) -> NodeCreateTransaction:
         """
         Sets the description for this node create transaction.
 
@@ -113,14 +108,12 @@ class NodeCreateTransaction(Transaction):
         self.description = description
         return self
 
-    def set_gossip_endpoints(
-        self, gossip_endpoints: Optional[List[Endpoint]]
-    ) -> "NodeCreateTransaction":
+    def set_gossip_endpoints(self, gossip_endpoints: list[Endpoint] | None) -> NodeCreateTransaction:
         """
         Sets the gossip endpoints for this node create transaction.
 
         Args:
-            gossip_endpoints (List[Endpoint]):
+            gossip_endpoints (list[Endpoint] | None):
                 The gossip endpoints of the node.
 
         Returns:
@@ -130,14 +123,12 @@ class NodeCreateTransaction(Transaction):
         self.gossip_endpoints = gossip_endpoints
         return self
 
-    def set_service_endpoints(
-        self, service_endpoints: Optional[List[Endpoint]]
-    ) -> "NodeCreateTransaction":
+    def set_service_endpoints(self, service_endpoints: list[Endpoint] | None) -> NodeCreateTransaction:
         """
         Sets the service endpoints for this node create transaction.
 
         Args:
-            service_endpoints (List[Endpoint]):
+            service_endpoints (list[Endpoint] | None):
                 The service endpoints of the node.
 
         Returns:
@@ -147,9 +138,7 @@ class NodeCreateTransaction(Transaction):
         self.service_endpoints = service_endpoints
         return self
 
-    def set_gossip_ca_certificate(
-        self, gossip_ca_certificate: Optional[bytes]
-    ) -> "NodeCreateTransaction":
+    def set_gossip_ca_certificate(self, gossip_ca_certificate: bytes | None) -> NodeCreateTransaction:
         """
         Sets the gossip ca certificate for this node create transaction.
 
@@ -164,9 +153,7 @@ class NodeCreateTransaction(Transaction):
         self.gossip_ca_certificate = gossip_ca_certificate
         return self
 
-    def set_grpc_certificate_hash(
-        self, grpc_certificate_hash: Optional[bytes]
-    ) -> "NodeCreateTransaction":
+    def set_grpc_certificate_hash(self, grpc_certificate_hash: bytes | None) -> NodeCreateTransaction:
         """
         Sets the grpc certificate hash for this node create transaction.
 
@@ -181,7 +168,7 @@ class NodeCreateTransaction(Transaction):
         self.grpc_certificate_hash = grpc_certificate_hash
         return self
 
-    def set_admin_key(self, admin_key: Optional[PublicKey]) -> "NodeCreateTransaction":
+    def set_admin_key(self, admin_key: PublicKey | None) -> NodeCreateTransaction:
         """
         Sets the admin key for this node create transaction.
 
@@ -196,9 +183,7 @@ class NodeCreateTransaction(Transaction):
         self.admin_key = admin_key
         return self
 
-    def set_decline_reward(
-        self, decline_reward: Optional[bool]
-    ) -> "NodeCreateTransaction":
+    def set_decline_reward(self, decline_reward: bool | None) -> NodeCreateTransaction:
         """
         Sets the decline reward for this node create transaction.
 
@@ -213,9 +198,7 @@ class NodeCreateTransaction(Transaction):
         self.decline_reward = decline_reward
         return self
 
-    def set_grpc_web_proxy_endpoint(
-        self, grpc_web_proxy_endpoint: Optional[Endpoint]
-    ) -> "NodeCreateTransaction":
+    def set_grpc_web_proxy_endpoint(self, grpc_web_proxy_endpoint: Endpoint | None) -> NodeCreateTransaction:
         """
         Sets the grpc web proxy endpoint for this node create transaction.
 
@@ -230,6 +213,34 @@ class NodeCreateTransaction(Transaction):
         self.grpc_web_proxy_endpoint = grpc_web_proxy_endpoint
         return self
 
+    def set_associated_registered_nodes(self, registered_node_ids: list[int]) -> NodeCreateTransaction:
+        """
+        Sets the associated registered node IDs for this node create transaction.
+
+        Args:
+            registered_node_ids (list[int]): The registered node IDs to associate.
+
+        Returns:
+            NodeCreateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.associated_registered_nodes = registered_node_ids
+        return self
+
+    def add_associated_registered_node(self, registered_node_id: int) -> NodeCreateTransaction:
+        """
+        Adds an associated registered node ID to this node create transaction.
+
+        Args:
+            registered_node_id (int): The registered node ID to add.
+
+        Returns:
+            NodeCreateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.associated_registered_nodes.append(registered_node_id)
+        return self
+
     def _build_proto_body(self) -> NodeCreateTransactionBody:
         """
         Returns the protobuf body for the node create transaction.
@@ -240,21 +251,14 @@ class NodeCreateTransaction(Transaction):
         return NodeCreateTransactionBody(
             account_id=self.account_id._to_proto() if self.account_id else None,
             description=self.description,
-            gossip_endpoint=[
-                endpoint._to_proto() for endpoint in self.gossip_endpoints or []
-            ],
-            service_endpoint=[
-                endpoint._to_proto() for endpoint in self.service_endpoints or []
-            ],
+            gossip_endpoint=[endpoint._to_proto() for endpoint in self.gossip_endpoints or []],
+            service_endpoint=[endpoint._to_proto() for endpoint in self.service_endpoints or []],
             gossip_ca_certificate=self.gossip_ca_certificate,
             grpc_certificate_hash=self.grpc_certificate_hash,
             admin_key=self.admin_key._to_proto() if self.admin_key else None,
             decline_reward=self.decline_reward,
-            grpc_proxy_endpoint=(
-                self.grpc_web_proxy_endpoint._to_proto()
-                if self.grpc_web_proxy_endpoint
-                else None
-            ),
+            grpc_proxy_endpoint=(self.grpc_web_proxy_endpoint._to_proto() if self.grpc_web_proxy_endpoint else None),
+            associated_registered_node=self.associated_registered_nodes,
         )
 
     def build_transaction_body(self) -> TransactionBody:
@@ -268,7 +272,7 @@ class NodeCreateTransaction(Transaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.nodeCreate.CopyFrom(node_create_body)
         return transaction_body
-    
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for node create transaction.
@@ -280,7 +284,6 @@ class NodeCreateTransaction(Transaction):
         scheduled_body = self.build_base_scheduled_body()
         scheduled_body.nodeCreate.CopyFrom(node_create_body)
         return scheduled_body
-
 
     def _get_method(self, channel: _Channel) -> _Method:
         """
@@ -296,3 +299,29 @@ class NodeCreateTransaction(Transaction):
             _Method: An object containing the transaction function to create a node.
         """
         return _Method(transaction_func=channel.address_book.createNode, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+
+        if transaction_body.HasField("nodeCreate"):
+            pb = transaction_body.nodeCreate
+            if pb.HasField("account_id"):
+                transaction.account_id = AccountId._from_proto(pb.account_id)
+            if pb.description:
+                transaction.description = pb.description
+            transaction.gossip_endpoints = [Endpoint._from_proto(ep) for ep in pb.gossip_endpoint]
+            transaction.service_endpoints = [Endpoint._from_proto(ep) for ep in pb.service_endpoint]
+            if pb.gossip_ca_certificate:
+                transaction.gossip_ca_certificate = pb.gossip_ca_certificate
+            if pb.grpc_certificate_hash:
+                transaction.grpc_certificate_hash = pb.grpc_certificate_hash
+            if pb.HasField("admin_key"):
+                transaction.admin_key = PublicKey._from_proto(pb.admin_key)
+            if pb.decline_reward:
+                transaction.decline_reward = pb.decline_reward
+            if pb.HasField("grpc_proxy_endpoint"):
+                transaction.grpc_web_proxy_endpoint = Endpoint._from_proto(pb.grpc_proxy_endpoint)
+            transaction.associated_registered_nodes = list(pb.associated_registered_node)
+
+        return transaction

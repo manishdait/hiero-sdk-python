@@ -17,13 +17,14 @@ Therefore, the only required signature for execution is the sender’s (new acco
 uv run examples/schedule/schedule_sign_transaction.py
 python examples/schedule/schedule_sign_transaction.py
 """
+
 import datetime
 import os
 import sys
 
 from dotenv import load_dotenv
 
-from hiero_sdk_python import AccountId, Client, Hbar, Network, PrivateKey
+from hiero_sdk_python import Client, Hbar, PrivateKey
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.schedule.schedule_info_query import ScheduleInfoQuery
@@ -31,22 +32,17 @@ from hiero_sdk_python.schedule.schedule_sign_transaction import ScheduleSignTran
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
+
 load_dotenv()
 
 network_name = os.getenv("NETWORK", "testnet").lower()
 
 
-def setup_client():
-    """Initialize and set up the client with operator account."""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+def setup_client() -> Client:
+    """Setup Client."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
     return client
 
 
@@ -66,9 +62,7 @@ def create_account(client):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     account_id = receipt.account_id
@@ -96,12 +90,8 @@ def create_schedule(client, account_id):
     expiration_time = datetime.datetime.now() + datetime.timedelta(seconds=90)
 
     receipt = (
-        schedule_tx.set_payer_account_id(
-            client.operator_account_id
-        )  # payer of the transaction fee
-        .set_admin_key(
-            client.operator_private_key.public_key()
-        )  # delete/modify the transaction
+        schedule_tx.set_payer_account_id(client.operator_account_id)  # payer of the transaction fee
+        .set_admin_key(client.operator_private_key.public_key())  # delete/modify the transaction
         .set_expiration_time(Timestamp.from_date(expiration_time))
         .set_wait_for_expiry(False)  # don't wait for expiry, execute when signed
         .set_schedule_memo("Test schedule for signing")
@@ -109,9 +99,7 @@ def create_schedule(client, account_id):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Schedule creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Schedule creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"Schedule created with ID: {receipt.schedule_id}")
@@ -149,7 +137,7 @@ def query_schedule_info(client, schedule_id, required_inner_keys=None):
     print(f"Wait For Expiry: {info.wait_for_expiry}")
     print(f"Collected Signers: {len(info.signers)}")
     for i, signer in enumerate(info.signers):
-        print(f"  Signer {i+1}: {signer}")
+        print(f"  Signer {i + 1}: {signer}")
 
     # Show which signatures are still missing for the inner txn, if provided
     if required_inner_keys:

@@ -1,4 +1,4 @@
-# This workflow warns the team about P0 issues immediately when they are created.
+# This workflow warns the team about priority: critical issues immediately when they are created.
 name: P0 Issue Alert
 on:
   issues:
@@ -12,15 +12,15 @@ permissions:
 jobs:
   p0_notify_team:
     runs-on: hl-sdk-py-lin-md
-    # Only run for issues labeled with 'p0' (case-insensitive)
+    # Only run for issues labeled with 'priority: critical' (case-insensitive)
     if: >
       (github.event_name == 'issues' && (
-          (github.event.label.name == 'p0' || github.event.label.name == 'P0'))
+          (github.event.label.name == 'priority: critical' || github.event.label.name == 'Priority: Critical'))
       )
 
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.16.1
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
         with:
           egress-policy: audit
 
@@ -30,8 +30,8 @@ jobs:
       - name: Notify team of P0 issues
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd #v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 #v9.0.0
         with:
           script: |
-            const script = require('./.github/scripts/bot-p0-issues-notify-team.js');      
-            await script({ github, context});
+            const script = require('./.github/scripts/bot-p0-issues-notify-team.js');
+            await script({ github, context });

@@ -9,34 +9,52 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.workflow_run.id }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   apply:
     if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
-    
+      issues: write
+      actions: read
+
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
       - name: Download Artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        continue-on-error: true
         with:
           name: pr-labels-data
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Apply Labels
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const fs = require('fs');
+
             if (!fs.existsSync('labels.json')) {
                console.log("No payload file found. Nothing to apply.");
                return;
             }
 
             const data = JSON.parse(fs.readFileSync('labels.json', 'utf8'));
+
+            if (!data.labels || data.labels.length === 0) {
+              console.log(`SKIPPING: PR #${data.pr_number} already has all labels or no labels were found.`);
+              return;
+            }
+
             console.log(`Applying labels to PR #${data.pr_number}: ${data.labels.join(', ')}`);
-            
+
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,

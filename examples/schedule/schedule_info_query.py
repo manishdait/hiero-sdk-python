@@ -6,6 +6,7 @@ Example demonstrating schedule info query on the network.
 uv run examples/schedule/schedule_info_query.py
 python examples/schedule/schedule_info_query.py
 """
+
 import datetime
 import os
 import sys
@@ -14,10 +15,8 @@ from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     AccountCreateTransaction,
-    AccountId,
     Client,
     Hbar,
-    Network,
     PrivateKey,
     ResponseCode,
     ScheduleInfoQuery,
@@ -25,22 +24,17 @@ from hiero_sdk_python import (
     TransferTransaction,
 )
 
+
 load_dotenv()
 
 network_name = os.getenv("NETWORK", "testnet").lower()
 
 
-def setup_client():
-    """Initialize and set up the client with operator account."""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+def setup_client() -> Client:
+    """Setup Client."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
     return client
 
 
@@ -60,9 +54,7 @@ def create_account(client):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     account_id = receipt.account_id
@@ -90,24 +82,16 @@ def create_schedule(client, account_id, account_private_key):
     expiration_time = datetime.datetime.now() + datetime.timedelta(seconds=90)
 
     receipt = (
-        schedule_tx.set_payer_account_id(
-            client.operator_account_id
-        )  # payer of the transaction fee
-        .set_admin_key(
-            client.operator_private_key.public_key()
-        )  # delete/modify the transaction
+        schedule_tx.set_payer_account_id(client.operator_account_id)  # payer of the transaction fee
+        .set_admin_key(client.operator_private_key.public_key())  # delete/modify the transaction
         .set_expiration_time(Timestamp.from_date(expiration_time))
         .freeze_with(client)
-        .sign(
-            account_private_key
-        )  # sign with the account private key as it transfers money
+        .sign(account_private_key)  # sign with the account private key as it transfers money
         .execute(client)
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Schedule creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Schedule creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"Schedule created with ID: {receipt.schedule_id}")
@@ -147,7 +131,7 @@ def query_schedule_info():
     print(f"Admin Key: {info.admin_key}")
     print(f"Signers: {len(info.signers)} signer(s)")
     for i, signer in enumerate(info.signers):
-        print(f"  Signer {i+1}: {signer}")
+        print(f"  Signer {i + 1}: {signer}")
     print(f"Ledger ID: {info.ledger_id}")
     print(f"Wait For Expiry: {info.wait_for_expiry}")
 

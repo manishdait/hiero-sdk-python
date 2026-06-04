@@ -16,13 +16,14 @@ Usage:
     uv run -m examples.contract.contract_update_transaction
     python -m examples.contract.contract_update_transaction
 """
+
 import datetime
 import os
 import sys
 
 from dotenv import load_dotenv
 
-from hiero_sdk_python import AccountId, Client, Network, PrivateKey
+from hiero_sdk_python import Client
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
 )
@@ -39,22 +40,17 @@ from hiero_sdk_python.timestamp import Timestamp
 # The contract bytecode is pre-compiled from Solidity source code
 from .contracts import SIMPLE_CONTRACT_BYTECODE
 
+
 load_dotenv()
 
 network_name = os.getenv("NETWORK", "testnet").lower()
 
 
-def setup_client():
-    """Initialize and set up the client with operator account."""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+def setup_client() -> Client:
+    """Setup Client."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
     return client
 
 
@@ -70,9 +66,7 @@ def create_contract_file(client):
 
     # Check if file creation was successful
     if file_receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
-        )
+        print(f"File creation failed with status: {ResponseCode(file_receipt.status).name}")
         sys.exit(1)
 
     return file_receipt.file_id
@@ -91,9 +85,7 @@ def create_initial_contract(client, file_id):
 
     # Check if contract creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Contract creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     return receipt.contract_id
@@ -140,9 +132,7 @@ def contract_update():
 
     # Check if contract update was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Contract update failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Contract update failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"\nContract updated successfully with ID: {contract_id}")

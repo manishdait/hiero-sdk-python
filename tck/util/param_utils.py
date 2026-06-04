@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 def parse_session_id(params: dict) -> str:
     """Parse sessionId from the json rpc params."""
     session_id = params.get("sessionId")
@@ -16,9 +19,7 @@ def parse_common_transaction_params(params: dict):
     if common_params is None:
         return None
 
-    return CommonTransactionParams.parse_json_params(
-        params.get("commonTransactionParams")
-    )
+    return CommonTransactionParams.parse_json_params(params.get("commonTransactionParams"))
 
 
 def to_int(value) -> int | None:
@@ -27,6 +28,28 @@ def to_int(value) -> int | None:
         return int(value)
     except (TypeError, ValueError):
         return None
+
+
+def non_empty_string_or_none(value: str | None) -> str | None:
+    """Trim string values; convert blank strings to None."""
+    if not isinstance(value, str):
+        return value
+    cleaned = value.strip()
+    return cleaned if cleaned else None
+
+
+def non_empty_string_list(values) -> list[str] | None:
+    """Trim list entries and remove empty-string items."""
+    if values is None:
+        return None
+
+    cleaned_values: list[str] = []
+    for value in values:
+        cleaned = non_empty_string_or_none(value)
+        if cleaned is not None:
+            cleaned_values.append(cleaned)
+
+    return cleaned_values
 
 
 def to_bool(value) -> bool | None:

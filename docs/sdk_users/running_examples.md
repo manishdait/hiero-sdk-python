@@ -943,7 +943,7 @@ transaction.execute(client)
 #### Pythonic Syntax:
 ```
 transaction = TokenAirdropTransaction(
-    token_transfers=token_transfers, 
+    token_transfers=token_transfers,
     nft_transfers=nft_transfers
 ).freeze_with(client)
 
@@ -2214,3 +2214,7 @@ record = (
 print(f"Generated PRNG bytes length: {len(record.prng_bytes)} bytes")
 print(f"PRNG bytes in hex: {record.prng_bytes.hex()}")
 ```
+
+## See Also
+
+- [Error Handling](error_handling.md) — how to catch and handle `PrecheckError`, `ReceiptStatusError`, and `MaxAttemptsError`

@@ -17,15 +17,18 @@ Setup options:
 1. GitHub repository with full setup instructions: https://github.com/hiero-ledger/solo
 2. Official documentation with step-by-step guide: https://solo.hiero.org/v0.43.0/docs/step-by-step-guide/
 """
+
 import sys
 
 from dotenv import load_dotenv
 
 from hiero_sdk_python import AccountId, Client, Network, PrivateKey
+from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.nodes.node_create_transaction import NodeCreateTransaction
 from hiero_sdk_python.nodes.node_update_transaction import NodeUpdateTransaction
 from hiero_sdk_python.response_code import ResponseCode
+
 
 # Gossip certificate is a DER-encoded x509 certificate used for secure communication between nodes.
 # This certificate authenticates the node's identity during gossip protocol communication.
@@ -51,20 +54,15 @@ def setup_client():
     # The private key is intentionally public for local development.
     # Note: This setup only works on solo network and will not work on testnet/mainnet.
     original_operator_key = PrivateKey.from_string_der(
-        "302e020100300506032b65700422042091132178e7"
-        "2057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
+        "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
     )
     client.set_operator(AccountId(0, 0, 2), original_operator_key)
 
     return client
 
 
-def create_node(client):
+def create_node(client, account_id):
     """Create a node on the network and return its ID and admin key."""
-    # Node account ID - this should be an existing account
-    # that will be associated with the node
-    account_id = AccountId.from_string("0.0.4")
-
     # Node description
     description = "Example node"
 
@@ -107,30 +105,17 @@ def create_node(client):
     return receipt.node_id, admin_key
 
 
-def update_node(client, node_id, admin_key):
+def update_node(client, account_id, node_account_key, node_id, admin_key):
     """Update an existing node with new parameters."""
-    # Node account ID
-    account_id = AccountId.from_string("0.0.4")
-
     # Updated node description
     updated_description = "Updated example node"
 
     # Updated endpoints for node services
-    updated_gossip_endpoint1 = Endpoint(
-        domain_name="updated-gossip1.example.com", port=50311
-    )
-    updated_gossip_endpoint2 = Endpoint(
-        domain_name="updated-gossip2.example.com", port=50312
-    )
-    updated_service_endpoint1 = Endpoint(
-        domain_name="updated-service1.example.com", port=50311
-    )
-    updated_service_endpoint2 = Endpoint(
-        domain_name="updated-service2.example.com", port=50312
-    )
-    updated_grpc_proxy_endpoint = Endpoint(
-        domain_name="updated-grpc.example.com", port=50313
-    )
+    updated_gossip_endpoint1 = Endpoint(domain_name="updated-gossip1.example.com", port=50311)
+    updated_gossip_endpoint2 = Endpoint(domain_name="updated-gossip2.example.com", port=50312)
+    updated_service_endpoint1 = Endpoint(domain_name="updated-service1.example.com", port=50311)
+    updated_service_endpoint2 = Endpoint(domain_name="updated-service2.example.com", port=50312)
+    updated_grpc_proxy_endpoint = Endpoint(domain_name="updated-grpc.example.com", port=50313)
 
     # DER encoded x509 certificate
     updated_gossip_ca_cert = bytes.fromhex(GOSSIP_CERTIFICATE)
@@ -148,7 +133,8 @@ def update_node(client, node_id, admin_key):
         .set_grpc_web_proxy_endpoint(updated_grpc_proxy_endpoint)
         .set_decline_reward(False)
         .freeze_with(client)
-        .sign(admin_key)  # Sign with the admin key
+        .sign(admin_key)
+        .sign(node_account_key)
         .execute(client)
     )
 
@@ -172,11 +158,20 @@ def node_update():
     # Set up client with operator account
     client = setup_client()
 
+    node_account_private_key = PrivateKey.generate_ecdsa()
+    node_account_id = (
+        AccountCreateTransaction()
+        .set_key_without_alias(node_account_private_key)
+        .freeze_with(client)
+        .execute(client)
+        .account_id
+    )
+
     # Create a new node and get its ID and admin key
-    node_id, admin_key = create_node(client)
+    node_id, admin_key = create_node(client, node_account_id)
 
     # Update the newly created node with modified parameters
-    update_node(client, node_id, admin_key)
+    update_node(client, node_account_id, node_account_private_key, node_id, admin_key)
 
     print("\nNode creation and update example completed successfully!")
 

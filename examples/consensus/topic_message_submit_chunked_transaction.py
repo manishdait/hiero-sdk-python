@@ -2,24 +2,22 @@
 
 Example demonstrating topic message submit chunked transaction.
 
-uv run examples/consensus/topic_message_submit_chunked.py
-python examples/consensus/topic_message_submit_chunked.py
+uv run examples/consensus/topic_message_submit_chunked_transaction.py
+python examples/consensus/topic_message_submit_chunked_transaction.py
 """
-import os
+
 import sys
 
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    AccountId,
     Client,
-    Network,
-    PrivateKey,
     ResponseCode,
     TopicCreateTransaction,
     TopicInfoQuery,
     TopicMessageSubmitTransaction,
 )
+
 
 BIG_CONTENT = """
 
@@ -52,21 +50,12 @@ Etiam ut sodales ex. Nulla luctus, magna eu scelerisque sagittis, nibh quam cons
 load_dotenv()
 
 
-def setup_client():
-    """Set up and configure a Hedera client for testnet operations."""
-    network_name = os.getenv("NETWORK", "testnet").lower()
-
-    print(f"Connecting to Hedera {network_name} network!")
-
+def setup_client() -> Client:
+    """Setup Client."""
     try:
-        network = Network(network_name)
-        client = Client(network)
-
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
-
-        client.set_operator(operator_id, operator_key)
-        print(f"Client initialized with operator: {operator_id}")
+        client = Client.from_env()
+        print(f"Network: {client.network.network}")
+        print(f"Client initialized with operator: {client.operator_account_id}")
         return client
     except Exception as e:
         print(f"Failed to set up client: {e}")
@@ -77,11 +66,7 @@ def create_topic(client):
     """Create a new topic."""
     print("\nCreating a Topic...")
     try:
-        topic_receipt = (
-            TopicCreateTransaction(memo="Python SDK created topic")
-            .freeze_with(client)
-            .execute(client)
-        )
+        topic_receipt = TopicCreateTransaction(memo="Python SDK created topic").freeze_with(client).execute(client)
         topic_id = topic_receipt.topic_id
 
         print(f"Topic created: {topic_id}")
@@ -105,18 +90,14 @@ def submit_topic_message_transaction(client, topic_id):
         )
 
         if message_receipt.status != ResponseCode.SUCCESS:
-            print(
-                f"Failed to submit message status: {ResponseCode(message_receipt.status).name}"
-            )
+            print(f"Failed to submit message status: {ResponseCode(message_receipt.status).name}")
             sys.exit(1)
 
         print(
             f"Message submitted (status={ResponseCode(message_receipt.status)}, txId={message_receipt.transaction_id})"
         )
         print("Message size:", len(BIG_CONTENT), "bytes")
-        print(
-            f"Message Content: {(BIG_CONTENT[:140] + '...') if len(BIG_CONTENT) > 140 else BIG_CONTENT}"
-        )
+        print(f"Message Content: {(BIG_CONTENT[:140] + '...') if len(BIG_CONTENT) > 140 else BIG_CONTENT}")
 
     except Exception as e:
         print(f"Error: Message submission failed: {str(e)}")

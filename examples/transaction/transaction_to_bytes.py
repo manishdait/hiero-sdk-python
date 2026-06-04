@@ -13,19 +13,18 @@ Run with:
   uv run examples/transaction/transaction_to_bytes.py
   python examples/transaction/transaction_to_bytes.py
 """
+
 import os
-import sys
 
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     AccountId,
     Client,
-    Network,
-    PrivateKey,
     Transaction,
     TransferTransaction,
 )
+
 
 load_dotenv()
 NETWORK = os.getenv("NETWORK", "testnet").lower()
@@ -35,26 +34,13 @@ OPERATOR_KEY = os.getenv("OPERATOR_KEY", "")
 
 def setup_client() -> Client:
     """Initialize the client using operator credentials from .env."""
-    try:
-        network = Network(NETWORK)
-        client = Client(network)
-
-        operator_id = AccountId.from_string(OPERATOR_ID)
-        operator_key = PrivateKey.from_string(OPERATOR_KEY)
-
-        client.set_operator(operator_id, operator_key)
-
-        print(f"Connected to network '{NETWORK}' as {operator_id}")
-        return client
-
-    except Exception as e:
-        print(f"❌ Error initializing client: {e}")
-        sys.exit(1)
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Connected as {client.operator_account_id}")
+    return client
 
 
-def create_and_freeze_transaction(
-    client: Client, sender: AccountId, receiver: AccountId
-):
+def create_and_freeze_transaction(client: Client, sender: AccountId, receiver: AccountId):
     """Create and freeze a simple HBAR transfer transaction."""
     tx = (
         TransferTransaction()

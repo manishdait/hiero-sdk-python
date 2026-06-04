@@ -6,6 +6,7 @@ Usage:
     uv run examples/transaction/transfer_transaction_tinybar.py
     python examples/transaction/transfer_transaction_tinybar.py
 """
+
 import os
 import sys
 
@@ -17,11 +18,11 @@ from hiero_sdk_python import (
     Client,
     CryptoGetAccountBalanceQuery,
     Hbar,
-    Network,
     PrivateKey,
     ResponseCode,
     TransferTransaction,
 )
+
 
 load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
@@ -29,22 +30,17 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 TINYBARS_TO_TRANSFER = 100_000_000
 
 
-def setup_client():
-    """Initialize and set up the client with operator account."""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
+def setup_client() -> tuple[Client, AccountId, PrivateKey]:
+    """Setup Client."""
+    client = Client.from_env()
 
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
 
-        return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("❌ Error: Creating client, Please check your .env file")
-        sys.exit(1)
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+
+    return client, operator_id, operator_key
 
 
 def create_account(client, operator_key):
@@ -60,9 +56,7 @@ def create_account(client, operator_key):
         receipt = tx.freeze_with(client).sign(operator_key).execute(client)
 
         if receipt.status != ResponseCode.SUCCESS:
-            print(
-                f"❌ Account creation failed with status: {ResponseCode(receipt.status).name}"
-            )
+            print(f"❌ Account creation failed with status: {ResponseCode(receipt.status).name}")
             sys.exit(1)
 
         recipient_id = receipt.account_id
@@ -129,9 +123,7 @@ def transfer_hbar_with_object(client, operator_id, recipient_id, operator_key):
 def get_balance(client, account_id, when=""):
     """Query and display account balance."""
     try:
-        balance = (
-            CryptoGetAccountBalanceQuery(account_id=account_id).execute(client).hbars
-        )
+        balance = CryptoGetAccountBalanceQuery(account_id=account_id).execute(client).hbars
         print(f"Recipient account balance{when}: {balance} hbars")
         return balance
     except Exception as e:

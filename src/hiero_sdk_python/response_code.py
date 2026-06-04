@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import warnings
 from enum import IntEnum
+
 
 class ResponseCode(IntEnum):
     OK = 0
@@ -88,8 +91,8 @@ class ResponseCode(IntEnum):
     CONTRACT_FILE_EMPTY = 83
     CONTRACT_BYTECODE_EMPTY = 84
     INVALID_INITIAL_BALANCE = 85
-    INVALID_RECEIVE_RECORD_THRESHOLD = 86   # [Deprecated]
-    INVALID_SEND_RECORD_THRESHOLD = 87      # [Deprecated]
+    INVALID_RECEIVE_RECORD_THRESHOLD = 86  # [Deprecated]
+    INVALID_SEND_RECORD_THRESHOLD = 87  # [Deprecated]
     ACCOUNT_IS_NOT_GENESIS_ACCOUNT = 88
     PAYER_ACCOUNT_UNAUTHORIZED = 89
     INVALID_FREEZE_TRANSACTION_BODY = 90
@@ -244,25 +247,25 @@ class ResponseCode(IntEnum):
     MAX_STORAGE_IN_PRICE_REGIME_HAS_BEEN_USED = 281
     INVALID_ALIAS_KEY = 282
     UNEXPECTED_TOKEN_DECIMALS = 283
-    INVALID_PROXY_ACCOUNT_ID = 284         # [Deprecated]
+    INVALID_PROXY_ACCOUNT_ID = 284  # [Deprecated]
     INVALID_TRANSFER_ACCOUNT_ID = 285
     INVALID_FEE_COLLECTOR_ACCOUNT_ID = 286
     ALIAS_IS_IMMUTABLE = 287
     SPENDER_ACCOUNT_SAME_AS_OWNER = 288
     AMOUNT_EXCEEDS_TOKEN_MAX_SUPPLY = 289
     NEGATIVE_ALLOWANCE_AMOUNT = 290
-    CANNOT_APPROVE_FOR_ALL_FUNGIBLE_COMMON = 291   # [Deprecated]
+    CANNOT_APPROVE_FOR_ALL_FUNGIBLE_COMMON = 291  # [Deprecated]
     SPENDER_DOES_NOT_HAVE_ALLOWANCE = 292
     AMOUNT_EXCEEDS_ALLOWANCE = 293
     MAX_ALLOWANCES_EXCEEDED = 294
     EMPTY_ALLOWANCES = 295
-    SPENDER_ACCOUNT_REPEATED_IN_ALLOWANCES = 296   # [Deprecated]
-    REPEATED_SERIAL_NUMS_IN_NFT_ALLOWANCES = 297   # [Deprecated]
+    SPENDER_ACCOUNT_REPEATED_IN_ALLOWANCES = 296  # [Deprecated]
+    REPEATED_SERIAL_NUMS_IN_NFT_ALLOWANCES = 297  # [Deprecated]
     FUNGIBLE_TOKEN_IN_NFT_ALLOWANCES = 298
     NFT_IN_FUNGIBLE_TOKEN_ALLOWANCES = 299
     INVALID_ALLOWANCE_OWNER_ID = 300
     INVALID_ALLOWANCE_SPENDER_ID = 301
-    REPEATED_ALLOWANCES_TO_DELETE = 302     # [Deprecated]
+    REPEATED_ALLOWANCES_TO_DELETE = 302  # [Deprecated]
     INVALID_DELEGATING_SPENDER = 303
     DELEGATING_SPENDER_CANNOT_GRANT_APPROVE_FOR_ALL = 304
     DELEGATING_SPENDER_DOES_NOT_HAVE_APPROVE_FOR_ALL = 305
@@ -355,9 +358,57 @@ class ResponseCode(IntEnum):
     MISSING_BATCH_KEY = 392
     BATCH_KEY_SET_ON_NON_INNER_TRANSACTION = 393
     INVALID_BATCH_KEY = 394
+    SCHEDULE_EXPIRY_NOT_CONFIGURABLE = 395
+    CREATING_SYSTEM_ENTITIES = 396
+    THROTTLE_GROUP_LCM_OVERFLOW = 397
+    AIRDROP_CONTAINS_MULTIPLE_SENDERS_FOR_A_TOKEN = 398
+    GRPC_WEB_PROXY_NOT_SUPPORTED = 399
+    NFT_TRANSFERS_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE = 400
+    INVALID_SERIALIZED_TX_MESSAGE_HASH_ALGORITHM = 401
+
+    # Hook status codes (499–528)
+    WRONG_HOOK_ENTITY_TYPE = 499
+    EVM_HOOK_GAS_THROTTLED = 500
+    HOOK_ID_IN_USE = 501
+    BAD_HOOK_REQUEST = 502
+    REJECTED_BY_ACCOUNT_ALLOWANCE_HOOK = 503
+    HOOK_NOT_FOUND = 504
+    EVM_HOOK_STORAGE_UPDATE_BYTES_TOO_LONG = 505
+    EVM_HOOK_STORAGE_UPDATE_BYTES_MUST_USE_MINIMAL_REPRESENTATION = 506
+    INVALID_HOOK_ID = 507
+    EMPTY_EVM_HOOK_STORAGE_UPDATE = 508
+    HOOK_ID_REPEATED_IN_CREATION_DETAILS = 509
+    HOOKS_NOT_ENABLED = 510
+    HOOK_IS_NOT_AN_EVM_HOOK = 511
+    HOOK_DELETED = 512
+    TOO_MANY_EVM_HOOK_STORAGE_UPDATES = 513
+    HOOK_CREATION_BYTES_MUST_USE_MINIMAL_REPRESENTATION = 514
+    HOOK_CREATION_BYTES_TOO_LONG = 515
+    INVALID_HOOK_CREATION_SPEC = 516
+    HOOK_EXTENSION_EMPTY = 517
+    INVALID_HOOK_ADMIN_KEY = 518
+    HOOK_DELETION_REQUIRES_ZERO_STORAGE_SLOTS = 519
+    CANNOT_SET_HOOKS_AND_APPROVAL = 520
+    TRANSACTION_REQUIRES_ZERO_HOOKS = 521
+    INVALID_HOOK_CALL = 522
+    HOOKS_ARE_NOT_SUPPORTED_IN_AIRDROPS = 523
+    ACCOUNT_IS_LINKED_TO_A_NODE = 524
+    HOOKS_EXECUTIONS_REQUIRE_TOP_LEVEL_CRYPTO_TRANSFER = 525
+    NODE_ACCOUNT_HAS_ZERO_BALANCE = 526
+    TRANSFER_TO_FEE_COLLECTION_ACCOUNT_NOT_ALLOWED = 527
+    TOO_MANY_HOOK_INVOCATIONS = 528
+
+    # Registered node status codes
+    INVALID_REGISTERED_NODE_ID = 529
+    INVALID_REGISTERED_ENDPOINT = 530
+    REGISTERED_ENDPOINTS_EXCEEDED_LIMIT = 531
+    INVALID_REGISTERED_ENDPOINT_ADDRESS = 532
+    INVALID_REGISTERED_ENDPOINT_TYPE = 533
+    REGISTERED_NODE_STILL_ASSOCIATED = 534
+    MAX_REGISTERED_NODES_EXCEEDED = 535
 
     @classmethod
-    def _missing_(cls, value: object) -> "ResponseCode":
+    def _missing_(cls, value: object) -> ResponseCode:
         """
         Handles cases where an integer value does not match any ResponseCode member
         and returns 'UNKNOWN_CODE_<value>'.
@@ -366,7 +417,7 @@ class ResponseCode(IntEnum):
             raise ValueError(f"{value!r} is not a valid {cls.__name__}")
 
         unknown = int.__new__(cls, value)
-        unknown._name_ = f'UNKNOWN_CODE_{value}'
+        unknown._name_ = f"UNKNOWN_CODE_{value}"
         unknown._value_ = value
         return unknown
 
@@ -375,13 +426,11 @@ class ResponseCode(IntEnum):
         return self.name.startswith("UNKNOWN_CODE_")
 
     @classmethod
-    def get_name(cls,code: int) -> str:
-        """
-        Returns the name of the response code.
-        """
+    def get_name(cls, code: int) -> str:
+        """Returns the name of the response code."""
         warnings.warn(
-            "The `get_name` method to be deprecated in v0.1.4. "
-            "Please use `ResponseCode(code).name` instead.", 
-            FutureWarning
+            "The `get_name` method to be deprecated in v0.1.4. Please use `ResponseCode(code).name` instead.",
+            FutureWarning,
+            stacklevel=2,
         )
         return cls(code).name

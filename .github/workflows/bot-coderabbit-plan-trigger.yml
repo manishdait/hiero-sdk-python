@@ -1,20 +1,9 @@
-# This workflow automatically triggers CodeRabbit's plan feature for intermediate and advanced issues.
-# Fix for #1427: Only triggers when a beginner/intermediate/advanced label is specifically added,
-# preventing duplicate runs when other labels are added to the same issue.
+# Triggers CodeRabbit's plan feature when a difficulty label is added to an issue.
+# Only fires for skill: beginner/intermediate/advanced labels, preventing duplicate runs.
 name: CodeRabbit Plan Trigger
 on:
   issues:
     types: [labeled]
-  workflow_dispatch:
-    inputs:
-      dry_run:
-        description: "Run without posting comments"
-        required: false
-        default: "true"
-        type: choice
-        options:
-          - "true"
-          - "false"
 
 permissions:
   issues: write
@@ -26,16 +15,15 @@ jobs:
     concurrency:
       group: coderabbit-plan-${{ github.event.issue.number }}
       cancel-in-progress: false
-    # Only run when the newly added label is beginner, intermediate, or advanced (case-insensitive)
+    # Only run when the newly added label is a difficulty label (skill: beginner/intermediate/advanced)
     if: >
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.action == 'labeled' && 
+      github.event.action == 'labeled' &&
       github.event.issue.state == 'open' &&
-      contains(fromJson('["beginner","intermediate","advanced","Beginner","Intermediate","Advanced"]'), github.event.label.name))
-  
+      contains(fromJson('["skill: beginner","skill: intermediate","skill: advanced"]'), github.event.label.name)
+
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.16.1
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
         with:
           egress-policy: audit
 
@@ -45,9 +33,8 @@ jobs:
       - name: Trigger CodeRabbit Plan
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd #v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 #v9.0.0
         with:
           script: |
-            const script = require('./.github/scripts/coderabbit_plan_trigger.js');      
+            const script = require('./.github/scripts/coderabbit_plan_trigger.js');
             await script({ github, context});

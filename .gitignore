@@ -35,6 +35,8 @@ src/hiero_sdk_python/hapi
 .hypothesis/
 
 # Lock files
-uv.lock
 pdm.lock
 pubkey.asc
+
+# Ruff cache
+.ruff_cache

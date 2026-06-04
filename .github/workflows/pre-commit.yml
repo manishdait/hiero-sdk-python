@@ -1,0 +1,73 @@
+name: Pre Commit Checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write # Required so the action can post comments to the PR
+
+jobs:
+  pre-commit-check:
+    name: Run Pre Commit Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.10'
+
+      - name: Pre Commit Check
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+
+      - name: Upload Pre-Commit Logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pre-commit-logs
+          path: ~/.cache/pre-commit/pre-commit.log
+          if-no-files-found: ignore
+
+      # --- NEW: Process Bandit/Pre-Commit Log for PR Comment ---
+      - name: Prepare PR Comment Message
+        id: pr_comment_msg
+        if: always() && github.event_name == 'pull_request'
+        run: |
+          LOG_FILE="$HOME/.cache/pre-commit/pre-commit.log"
+
+          echo "## 🚨 Pre-Commit & Bandit Security Scan Report" > pr_message.md
+          echo "" >> pr_message.md
+
+          if [ -f "$LOG_FILE" ] && [ -s "$LOG_FILE" ]; then
+            echo "### Found issues in the logs:" >> pr_message.md
+            echo "\`\`\`text" >> pr_message.md
+
+            # Extract Bandit specific blocks or general failures containing Severity keywords
+            if grep -qiE "severity: (low|medium|high)" "$LOG_FILE"; then
+              # Grabs the lines matching severity and a few lines of context around them
+              grep -B 2 -A 5 -iE "severity: (low|medium|high)" "$LOG_FILE" >> pr_message.md
+            else
+              # Fallback: dump the last 50 lines of the log if specific severity strings aren't parsed neatly
+              tail -n 50 "$LOG_FILE" >> pr_message.md
+            fi
+
+            echo "\`\`\`" >> pr_message.md
+          else
+            echo "✅ No pre-commit crash logs or severe Bandit issues found in the raw log file!" >> pr_message.md
+          fi
+
+      # --- NEW: Post the Comment to the PR ---
+      - name: Post Comment to PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: always() && github.event_name == 'pull_request'
+        with:
+          path: pr_message.md

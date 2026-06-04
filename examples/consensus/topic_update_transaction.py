@@ -5,6 +5,7 @@ Example demonstrating topic update transaction.
 uv run examples/consensus/topic_update_transaction.py
 python examples/consensus/topic_update_transaction.py
 """
+
 import os
 import sys
 
@@ -13,33 +14,28 @@ from dotenv import load_dotenv
 from hiero_sdk_python import (
     AccountId,
     Client,
-    Network,
     PrivateKey,
     ResponseCode,
     TopicCreateTransaction,
     TopicUpdateTransaction,
 )
 
+
 load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
 
 
-def setup_client():
-    """Initialize and set up the client with operator account."""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
+def setup_client() -> tuple[Client, AccountId, PrivateKey]:
+    """Setup Client."""
+    client = Client.from_env()
 
-    try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-        client.set_operator(operator_id, operator_key)
-        print(f"Client set up with operator id {client.operator_account_id}")
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
 
-        return client, operator_id, operator_key
-    except (TypeError, ValueError):
-        print("❌ Error: Creating client, Please check your .env file")
-        sys.exit(1)
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
+
+    return client, operator_id, operator_key
 
 
 def create_topic(client, operator_key):
@@ -47,9 +43,7 @@ def create_topic(client, operator_key):
     print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
-            TopicCreateTransaction(
-                memo="Python SDK created topic", admin_key=operator_key.public_key()
-            )
+            TopicCreateTransaction(memo="Python SDK created topic", admin_key=operator_key.public_key())
             .freeze_with(client)
             .sign(operator_key)
         )
@@ -73,11 +67,7 @@ def update_topic(new_memo):
 
     # Update the Topic
     print("\nSTEP 2: Updating Topic...")
-    transaction = (
-        TopicUpdateTransaction(topic_id=topic_id, memo=new_memo)
-        .freeze_with(client)
-        .sign(operator_key)
-    )
+    transaction = TopicUpdateTransaction(topic_id=topic_id, memo=new_memo).freeze_with(client).sign(operator_key)
 
     try:
         receipt = transaction.execute(client)

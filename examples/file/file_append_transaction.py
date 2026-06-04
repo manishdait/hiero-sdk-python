@@ -9,39 +9,32 @@ Run with:
 uv run examples/file_append_transaction.py
 python examples/file_append_transaction.py
 """
+
 import os
 import sys
 
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
-
 from hiero_sdk_python import (
-    AccountId,
     Client,
     FileAppendTransaction,
     FileCreateTransaction,
-    Network,
     PrivateKey,
     ResponseCode,
 )
 
+
+# Load environment variables from .env file
+load_dotenv()
+
 network_name = os.getenv("NETWORK", "testnet").lower()
 
 
-def setup_client():
-    """Initialize and set up the client with operator account."""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+def setup_client() -> Client:
+    """Setup Client."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
     return client
 
 
@@ -59,9 +52,7 @@ def create_file(client, file_private_key):
     )
 
     if create_receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"File creation failed with status: {ResponseCode(create_receipt.status).name}"
-        )
+        print(f"File creation failed with status: {ResponseCode(create_receipt.status).name}")
         sys.exit(1)
 
     file_id = create_receipt.file_id
@@ -83,9 +74,7 @@ def append_file_single(client, file_id, file_private_key):
     )
 
     if append_receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"File append failed with status: {ResponseCode(append_receipt.status).name}"
-        )
+        print(f"File append failed with status: {ResponseCode(append_receipt.status).name}")
         sys.exit(1)
 
     print("Content appended successfully!")
@@ -108,15 +97,11 @@ def append_file_large(client, file_id, file_private_key):
     )
 
     if large_append_receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Large file append failed with status: {ResponseCode(large_append_receipt.status).name}"
-        )
+        print(f"Large file append failed with status: {ResponseCode(large_append_receipt.status).name}")
         sys.exit(1)
 
     print("Large content appended successfully!")
-    print(
-        f"Total chunks used: {FileAppendTransaction().set_contents(large_content).get_required_chunks()}"
-    )
+    print(f"Total chunks used: {FileAppendTransaction().set_contents(large_content).get_required_chunks()}")
 
 
 def main():

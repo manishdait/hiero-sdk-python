@@ -6,9 +6,9 @@
 
 const fs = require('fs'); // For spam list
 
-const GOOD_FIRST_ISSUE_LABEL = 'Good First Issue';
+const { GOOD_FIRST_ISSUE_LABEL } = require('./shared/labels.js');
 const UNASSIGNED_GFI_SEARCH_URL =
-    'https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22Good%20First%20Issue%22%20no%3Aassignee';
+    `https://github.com/hiero-ledger/hiero-sdk-python/issues?q=${encodeURIComponent(`is:issue state:open label:"${GOOD_FIRST_ISSUE_LABEL}" no:assignee`)}`;
 
 const SPAM_LIST_PATH = '.github/spam-list.txt';
 
@@ -60,7 +60,7 @@ function commentRequestsAssignment(body) {
 }
 
 /**
- * Returns true if the issue has the good first issue label.
+ * Returns true if the issue has the Good First Issue label.
  */
 function issueIsGoodFirstIssue(issue) {
     const labels = issue?.labels?.map(label => label.name) ?? [];
@@ -94,7 +94,7 @@ function commentAlreadyAssigned(requesterUsername, issue) {
     return (
         `Hi @${requesterUsername} — this issue is already assigned to ${getCurrentAssigneeMention(issue)}, so I can’t assign it again.
 
-👉 **Choose a different Good First Issue to work on next:**  
+👉 **Choose a different Good First Issue to work on next:**
 [Browse unassigned Good First Issues](${UNASSIGNED_GFI_SEARCH_URL})
 
 Once you find one you like, comment \`/assign\` to get started.`
@@ -248,7 +248,7 @@ module.exports = async ({ github, context }) => {
                     username,
                 });
 
-                if (isTeamMember) {          
+                if (isTeamMember) {
                     console.log('[gfi-assign] Skip reminder: commenter is collaborator');
                     return;
                 }
@@ -403,7 +403,7 @@ module.exports = async ({ github, context }) => {
         if (mentorAssignmentSucceeded) {
             try {
                 const { triggerCodeRabbitPlan, hasExistingCodeRabbitPlan } = require('./coderabbit_plan_trigger.js');
-                
+
                 // Check if CodeRabbit plan already exists to avoid duplicate comments
                 const planExists = await hasExistingCodeRabbitPlan(github, owner, repo, issueNumber);
                 if (planExists) {

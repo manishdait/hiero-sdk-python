@@ -12,6 +12,7 @@ Usage:
     uv run examples/account/account_create_transaction_evm_alias.py
     python examples/account/account_create_transaction_evm_alias.py
 """
+
 import sys
 
 from dotenv import load_dotenv
@@ -28,19 +29,15 @@ from hiero_sdk_python import (
     PublicKey,
 )
 
+
 load_dotenv()
 
 
 def setup_client() -> Client:
     """Initialize client from environment variables."""
-    try:
-        client = Client.from_env()
-        print(f"Client set up with operator id {client.operator_account_id}")
-        return client
-
-    except Exception:
-        print("Error: Please check OPERATOR_ID, OPERATOR_KEY, and NETWORK in your .env file.")
-        sys.exit(1)
+    client = Client.from_env()
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 
 def generate_alias_key() -> tuple[PrivateKey, PublicKey, EvmAddress]:

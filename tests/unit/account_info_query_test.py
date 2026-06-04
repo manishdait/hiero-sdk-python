@@ -1,21 +1,24 @@
-import pytest
+from __future__ import annotations
+
 from unittest.mock import Mock
 
+import pytest
+
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.hapi.services import (
+    crypto_get_info_pb2,
+    response_header_pb2,
+    response_pb2,
+)
+from hiero_sdk_python.hapi.services.duration_pb2 import Duration as DurationProto
 from hiero_sdk_python.hapi.services.query_header_pb2 import ResponseType
+from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp as TimestampProto
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.hapi.services import (
-    response_pb2,
-    response_header_pb2,
-    crypto_get_info_pb2,
-)
-from hiero_sdk_python.Duration import Duration
-from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp as TimestampProto
-from hiero_sdk_python.hapi.services.duration_pb2 import Duration as DurationProto
 from hiero_sdk_python.timestamp import Timestamp
-
 from tests.unit.mock_server import mock_hedera_servers
+
 
 pytestmark = pytest.mark.unit
 
@@ -31,14 +34,29 @@ def test_constructor():
     assert query.account_id == account_id
 
 
-def test_execute_fails_with_missing_account_id(mock_client):
-    """Test request creation with missing Account ID."""
+def test_execute_fails_with_missing_account_id():
+    """Test request execution with missing Account ID throws PrecheckError."""
+    from hiero_sdk_python.exceptions import PrecheckError
+
     query = AccountInfoQuery()
 
-    with pytest.raises(
-        ValueError, match=r"Account ID must be set before making the request\."
-    ):
-        query.execute(mock_client)
+    response_sequences = [
+        [
+            response_pb2.Response(
+                cryptoGetInfo=crypto_get_info_pb2.CryptoGetInfoResponse(
+                    header=response_header_pb2.ResponseHeader(
+                        nodeTransactionPrecheckCode=ResponseCode.INVALID_ACCOUNT_ID,
+                        responseType=ResponseType.ANSWER_ONLY,
+                        cost=0,
+                    )
+                )
+            )
+        ]
+    ]
+    with mock_hedera_servers(response_sequences) as client:
+        with pytest.raises(PrecheckError) as exc_info:
+            query.execute(client)
+        assert exc_info.value.status == ResponseCode.INVALID_ACCOUNT_ID
 
 
 def test_get_method():

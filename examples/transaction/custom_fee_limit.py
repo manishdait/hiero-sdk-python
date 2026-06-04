@@ -7,18 +7,12 @@ Example: Using CustomFeeLimit with a revenue-generating topic.
 - Submits a message with a CustomFeeLimit specifying how much the payer is
   willing to pay in custom fees for that message.
 """
-import os
-import sys
-
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     AccountId,
     Client,
     CustomFixedFee,
     Hbar,
-    Network,
-    PrivateKey,
     TopicCreateTransaction,
     TopicMessageSubmitTransaction,
 )
@@ -27,28 +21,11 @@ from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 
 def setup_client() -> tuple[Client, AccountId]:
     """Initialize client and operator from .env file."""
-    load_dotenv()
+    client = Client.from_env()
 
-    if "OPERATOR_ID" not in os.environ or "OPERATOR_KEY" not in os.environ:
-        print("Environment variables OPERATOR_ID or OPERATOR_KEY are missing.")
-        sys.exit(1)
+    operator_id = client.operator_account_id
 
-    try:
-        operator_id = AccountId.from_string(os.environ["OPERATOR_ID"])
-        operator_key = PrivateKey.from_string(os.environ["OPERATOR_KEY"])
-    except Exception as e:  # noqa: BLE001
-        print(f"Failed to parse OPERATOR_ID or OPERATOR_KEY: {e}")
-        sys.exit(1)
-
-    network_name = os.environ.get("NETWORK", "testnet")
-
-    try:
-        client = Client(Network(network_name))
-    except Exception as e:
-        print(f"Failed to create client for network '{network_name}': {e}")
-        sys.exit(1)
-
-    client.set_operator(operator_id, operator_key)
+    print(f"Network: {client.network.network}")
     print(f"Operator set: {operator_id}")
 
     return client, operator_id
@@ -85,9 +62,7 @@ def create_revenue_generating_topic(client: Client, operator_id: AccountId):
         return None
 
 
-def submit_message_with_custom_fee_limit(
-    client: Client, topic_id, operator_id: AccountId
-) -> None:
+def submit_message_with_custom_fee_limit(client: Client, topic_id, operator_id: AccountId) -> None:
     """
     Submit a message to the topic with a CustomFeeLimit applied.
 
@@ -106,10 +81,7 @@ def submit_message_with_custom_fee_limit(
     fee_limit.set_payer_id(operator_id)
     fee_limit.add_custom_fee(limit_fee)
 
-    print(
-        f"Setting fee limit: max {limit_fee.amount} tinybars "
-        f"in custom fees for payer {operator_id}"
-    )
+    print(f"Setting fee limit: max {limit_fee.amount} tinybars in custom fees for payer {operator_id}")
 
     try:
         submit_tx = TopicMessageSubmitTransaction()

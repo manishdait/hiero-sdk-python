@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 
 from hiero_sdk_python.crypto.key import Key
@@ -27,20 +29,20 @@ class KeyType(Enum):
 def get_key_from_string(key_string: str) -> Key:
     """Helper to convert the str value to Key."""
     key_bytes = bytes.fromhex(key_string)
-    
+
     try:
         return Key.from_bytes(key_bytes)
     except Exception:
-        pass
+        pass  # nosec B110
 
     try:
         return PublicKey.from_string_der(key_string)
     except Exception:
-        pass
+        pass  # nosec B110
 
     try:
         return PrivateKey.from_string_der(key_string)
     except Exception:
-        pass
+        pass  # nosec B110
 
     raise ValueError("Invalid key string")

@@ -2,17 +2,22 @@
 Unit tests for Client methods (eg. from_env, for_testnet, for_mainnet, for_previewnet).
 """
 
-from decimal import Decimal
+from __future__ import annotations
+
 import os
+from decimal import Decimal
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import MagicMock, patch
 
+from hiero_sdk_python import AccountId, Client
 from hiero_sdk_python.client import client as client_module
-
-from hiero_sdk_python import Client, AccountId, PrivateKey
+from hiero_sdk_python.client.network import Network
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.node import _Node
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+
 
 pytestmark = pytest.mark.unit
 
@@ -73,20 +78,24 @@ def test_from_env_missing_operator_id_raises_error():
     """Test that from_env raises ValueError when OPERATOR_ID is missing."""
     dummy_key = PrivateKey.generate_ed25519().to_string_der()
 
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, {"OPERATOR_KEY": dummy_key}, clear=True):
-            with pytest.raises(ValueError) as exc_info:
-                Client.from_env()
-            assert "OPERATOR_ID" in str(exc_info.value)
+    with (
+        patch.object(client_module, "load_dotenv"),
+        patch.dict(os.environ, {"OPERATOR_KEY": dummy_key}, clear=True),
+        pytest.raises(ValueError) as exc_info,
+    ):
+        Client.from_env()
+    assert "OPERATOR_ID" in str(exc_info.value)
 
 
 def test_from_env_missing_operator_key_raises_error():
     """Test that from_env raises ValueError when OPERATOR_KEY is missing."""
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, {"OPERATOR_ID": "0.0.1234"}, clear=True):
-            with pytest.raises(ValueError) as exc_info:
-                Client.from_env()
-            assert "OPERATOR_KEY" in str(exc_info.value)
+    with (
+        patch.object(client_module, "load_dotenv"),
+        patch.dict(os.environ, {"OPERATOR_ID": "0.0.1234"}, clear=True),
+        pytest.raises(ValueError) as exc_info,
+    ):
+        Client.from_env()
+    assert "OPERATOR_KEY" in str(exc_info.value)
 
 
 def test_from_env_with_valid_credentials():
@@ -99,12 +108,11 @@ def test_from_env_with_valid_credentials():
         "OPERATOR_KEY": test_key_str,
     }
 
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, env_vars, clear=True):
-            client = Client.from_env()
-            assert isinstance(client, Client)
-            assert client.operator_account_id == AccountId.from_string("0.0.1234")
-            client.close()
+    with patch.object(client_module, "load_dotenv"), patch.dict(os.environ, env_vars, clear=True):
+        client = Client.from_env()
+        assert isinstance(client, Client)
+        assert client.operator_account_id == AccountId.from_string("0.0.1234")
+        client.close()
 
 
 def test_from_env_with_explicit_network_parameter():
@@ -118,11 +126,10 @@ def test_from_env_with_explicit_network_parameter():
         "NETWORK": "testnet",
     }
 
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, env_vars, clear=True):
-            client = Client.from_env(network="mainnet")
-            assert client.network.network == "mainnet"
-            client.close()
+    with patch.object(client_module, "load_dotenv"), patch.dict(os.environ, env_vars, clear=True):
+        client = Client.from_env(network="mainnet")
+        assert client.network.network == "mainnet"
+        client.close()
 
 
 def test_from_env_defaults_to_testnet():
@@ -135,11 +142,10 @@ def test_from_env_defaults_to_testnet():
         "OPERATOR_KEY": test_key_str,
     }
 
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, env_vars, clear=True):
-            client = Client.from_env()
-            assert client.network.network == "testnet"
-            client.close()
+    with patch.object(client_module, "load_dotenv"), patch.dict(os.environ, env_vars, clear=True):
+        client = Client.from_env()
+        assert client.network.network == "testnet"
+        client.close()
 
 
 def test_from_env_uses_network_env_var():
@@ -153,11 +159,10 @@ def test_from_env_uses_network_env_var():
         "NETWORK": "previewnet",
     }
 
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, env_vars, clear=True):
-            client = Client.from_env()
-            assert client.network.network == "previewnet"
-            client.close()
+    with patch.object(client_module, "load_dotenv"), patch.dict(os.environ, env_vars, clear=True):
+        client = Client.from_env()
+        assert client.network.network == "previewnet"
+        client.close()
 
 
 def test_from_env_with_invalid_network_name():
@@ -168,10 +173,12 @@ def test_from_env_with_invalid_network_name():
         "OPERATOR_KEY": test_key.to_string_der(),
     }
 
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, env_vars, clear=True):
-            with pytest.raises(ValueError, match="Invalid network name"):
-                Client.from_env(network="mars_network")
+    with (
+        patch.object(client_module, "load_dotenv"),
+        patch.dict(os.environ, env_vars, clear=True),
+        pytest.raises(ValueError, match="Invalid network name"),
+    ):
+        Client.from_env(network="mars_network")
 
 
 def test_from_env_with_malformed_operator_id():
@@ -182,10 +189,12 @@ def test_from_env_with_malformed_operator_id():
         "OPERATOR_KEY": test_key.to_string_der(),
     }
 
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, env_vars, clear=True):
-            with pytest.raises(ValueError, match="Invalid account ID"):
-                Client.from_env()
+    with (
+        patch.object(client_module, "load_dotenv"),
+        patch.dict(os.environ, env_vars, clear=True),
+        pytest.raises(ValueError, match="Invalid account ID"),
+    ):
+        Client.from_env()
 
 
 def test_from_env_with_malformed_operator_key():
@@ -195,10 +204,12 @@ def test_from_env_with_malformed_operator_key():
         "OPERATOR_KEY": "not-a-valid-key",
     }
 
-    with patch.object(client_module, "load_dotenv"):
-        with patch.dict(os.environ, env_vars, clear=True):
-            with pytest.raises(ValueError):
-                Client.from_env()
+    with (
+        patch.object(client_module, "load_dotenv"),
+        patch.dict(os.environ, env_vars, clear=True),
+        pytest.raises(ValueError),
+    ):
+        Client.from_env()
 
 
 @pytest.mark.parametrize(
@@ -220,9 +231,7 @@ def test_set_default_max_query_payment_valid_param(valid_amount, expected):
     assert client.default_max_query_payment == expected
 
 
-@pytest.mark.parametrize(
-    "negative_amount", [-1, -0.1, Decimal("-0.1"), Decimal("-1"), Hbar(-1)]
-)
+@pytest.mark.parametrize("negative_amount", [-1, -0.1, Decimal("-0.1"), Decimal("-1"), Hbar(-1)])
 def test_set_default_max_query_payment_negative_value(negative_amount):
     """Test set_default_max_query_payment for negative amount values."""
     client = Client.for_testnet()
@@ -238,10 +247,7 @@ def test_set_default_max_query_payment_invalid_param(invalid_amount):
 
     with pytest.raises(
         TypeError,
-        match=(
-            "max_query_payment must be int, float, Decimal, or Hbar, "
-            f"got {type(invalid_amount).__name__}"
-        ),
+        match=(f"max_query_payment must be int, float, Decimal, or Hbar, got {type(invalid_amount).__name__}"),
     ):
         client.set_default_max_query_payment(invalid_amount)
 
@@ -314,16 +320,12 @@ def test_set_grpc_deadline_with_invalid_type(invalid_grpc_deadline):
         client.set_grpc_deadline(invalid_grpc_deadline)
 
 
-@pytest.mark.parametrize(
-    "invalid_grpc_deadline", [0, -10, 0.0, -2.3, float("inf"), float("nan")]
-)
+@pytest.mark.parametrize("invalid_grpc_deadline", [0, -10, 0.0, -2.3, float("inf"), float("nan")])
 def test_set_grpc_deadline_with_invalid_value(invalid_grpc_deadline):
     """Test that set_grpc_deadline raises ValueError for non-positive values."""
     client = Client.for_testnet()
 
-    with pytest.raises(
-        ValueError, match="grpc_deadline must be a finite value greater than 0"
-    ):
+    with pytest.raises(ValueError, match="grpc_deadline must be a finite value greater than 0"):
         client.set_grpc_deadline(invalid_grpc_deadline)
 
 
@@ -352,16 +354,12 @@ def test_set_request_timeout_with_invalid_type(invalid_request_timeout):
         client.set_request_timeout(invalid_request_timeout)
 
 
-@pytest.mark.parametrize(
-    "invalid_request_timeout", [0, -10, 0.0, -2.3, float("inf"), float("nan")]
-)
+@pytest.mark.parametrize("invalid_request_timeout", [0, -10, 0.0, -2.3, float("inf"), float("nan")])
 def test_set_request_timeout_with_invalid_value(invalid_request_timeout):
     """Test that set_request_timeout raises ValueError for non-positive values."""
     client = Client.for_testnet()
 
-    with pytest.raises(
-        ValueError, match="request_timeout must be a finite value greater than 0"
-    ):
+    with pytest.raises(ValueError, match="request_timeout must be a finite value greater than 0"):
         client.set_request_timeout(invalid_request_timeout)
 
 
@@ -390,9 +388,7 @@ def test_set_min_backoff_with_invalid_type(invalid_min_backoff):
         client.set_min_backoff(invalid_min_backoff)
 
 
-@pytest.mark.parametrize(
-    "invalid_min_backoff", [-1, -10, float("inf"), float("-inf"), float("nan")]
-)
+@pytest.mark.parametrize("invalid_min_backoff", [-1, -10, float("inf"), float("-inf"), float("nan")])
 def test_set_min_backoff_with_invalid_value(invalid_min_backoff):
     """Test that set_min_backoff raises ValueError for invalid values."""
     client = Client.for_testnet()
@@ -435,9 +431,7 @@ def test_set_max_backoff_with_invalid_type(invalid_max_backoff):
         client.set_max_backoff(invalid_max_backoff)
 
 
-@pytest.mark.parametrize(
-    "invalid_max_backoff", [-1, -10, float("inf"), float("-inf"), float("nan")]
-)
+@pytest.mark.parametrize("invalid_max_backoff", [-1, -10, float("inf"), float("-inf"), float("nan")])
 def test_set_max_backoff_with_invalid_value(invalid_max_backoff):
     """Test that set_max_backoff raises ValueError for invalid values."""
     client = Client.for_testnet()
@@ -469,6 +463,7 @@ def test_update_network_refreshes_nodes_and_returns_self():
 
     client.close()
 
+
 def test_warning_when_grpc_deadline_exceeds_request_timeout():
     """Warn when grpc_deadline is greater than request_timeout."""
     client = Client.for_testnet()
@@ -498,7 +493,7 @@ def test_generate_transaction_id_requires_operator_set():
     client.close()
 
 
-def test_generate_transaction_id_returns_transaction_id(monkeypatch):
+def test_generate_transaction_id_returns_transaction_id():
     """Test that generate_transaction_id returns a TransactionId object when operator is set."""
     client = Client.for_testnet()
     client.operator_account_id = AccountId(0, 0, 1234)
@@ -534,3 +529,78 @@ def test_get_node_account_ids_raises_when_no_nodes():
         client.get_node_account_ids()
 
     client.close()
+
+
+def test_for_network_initializes_with_custom_map():
+    """Test for_network correctly maps strings to AccountIds and Nodes."""
+    network_map = {"127.0.0.1:50211": AccountId(0, 0, 3), "127.0.0.1:50212": AccountId(0, 0, 4)}
+
+    client = Client.for_network(network_map)
+
+    assert isinstance(client.network, Network)
+    assert len(client.network.nodes) == 2
+
+    node_accounts = [node._account_id.__str__() for node in client.network.nodes]
+    assert "0.0.3" in node_accounts
+    assert "0.0.4" in node_accounts
+
+
+@pytest.mark.parametrize("network", ["mainnet", "testnet", "previewnet"])
+def test_for_network_with_hosted_network_forces_tls(network):
+    """Test that if hosted-net the port 50211 is upgraded to 50212."""
+    network_map = {"34.94.106.61:50211": AccountId(0, 0, 3)}
+    client = Client.for_network(network_map, network_name=network)
+
+    node = client.network.nodes[0]
+    assert str(node._address) == "34.94.106.61:50212"
+    assert node._address._is_transport_security() is True
+    assert client.network.is_transport_security() is True
+
+
+@pytest.mark.parametrize("network", ["local", "localhost", "solo", "custom"])
+def test_for_network_with_non_hosted_network_not_forces_tls(network):
+    """Test that if non hosted-net the port 50211 does not change."""
+    network_map = {"127.0.0.1:50211": AccountId(0, 0, 3)}
+    client = Client.for_network(network_map, network_name=network)
+
+    node = client.network.nodes[0]
+    assert str(node._address) == "127.0.0.1:50211"
+    assert node._address._is_transport_security() is False
+    assert client.network.is_transport_security() is False
+
+
+@pytest.mark.parametrize("network", ["local", "localhost", "solo", "custom"])
+def test_for_network_with_non_hosted_network_not_downgrade_tls(network):
+    """Test that if non hosted-net the port 50212 does not change."""
+    network_map = {"127.0.0.1:50212": AccountId(0, 0, 3)}
+    client = Client.for_network(network_map, network_name=network)
+
+    node = client.network.nodes[0]
+    assert str(node._address) == "127.0.0.1:50212"
+    assert node._address._is_transport_security() is True
+    assert client.network.is_transport_security() is False  # Non hosted network.
+
+
+def test_for_network_with_empty_map_raises_error():
+    """Test that for_network raises ValueError when map is empty."""
+    with pytest.raises(ValueError, match="network_map cannot be empty"):
+        Client.for_network({})
+
+
+@pytest.mark.parametrize(
+    "invalid_map, error_msg",
+    [
+        (
+            {"127.0.0.1:50211": AccountId(0, 0, 3), "127.0.0.1:50212": AccountId(1, 0, 4)},
+            "network is not valid, all nodes must be in the same shard and realm",
+        ),
+        (
+            {"127.0.0.1:50211": AccountId(0, 0, 3), "127.0.0.1:50212": AccountId(0, 1, 4)},
+            "network is not valid, all nodes must be in the same shard and realm",
+        ),
+    ],
+)
+def test_for_network_invalid_shard_realm_raises_error(invalid_map, error_msg):
+    """Test that for_network catches mismatched shards or realms."""
+    with pytest.raises(ValueError, match=error_msg):
+        Client.for_network(invalid_map)

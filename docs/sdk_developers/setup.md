@@ -8,7 +8,9 @@ This guide walks you through setting up your development environment for contrib
 - [Installation](#installation)
   - [Installing from PyPI](#installing-from-pypi)
   - [Installing from Source](#installing-from-source)
-  - [Local Editable Installation](#local-editable-installation)
+- [Install Dependencies](#install-dependencies)
+- [Installing Optional Dependencies](#installing-optional-dependencies)
+- [Pre-Commit Tool Setup](#pre-commit-tool-setup)
 - [Generate Protocol Buffers](#generate-protocol-buffers)
 - [Environment Setup](#environment-setup)
 - [Setup Checklist](#examples)
@@ -174,6 +176,59 @@ Optional: To install all available extras (useful full-matrix testing):
 uv sync --dev --all-extras
 ```
 
+## Pre-Commit Tool Setup
+
+To maintain high code quality and security, this repository uses `pre-commit` hooks. These hooks automatically run checks (like `Ruff` for linting, `Bandit` for static security analysis and `Gitleaks` for security) every time you attempt to commit code.
+
+### Installation
+---
+
+**Option 1: Using `uv` (Recommended)**
+
+`uv` is recommended because it manages pre-commit within your project’s locked environment, ensuring your local changes matches the CI exactly.
+
+1. **Install the git hooks:**
+```bash
+uv run pre-commit install
+```
+
+2. **Verify your setup (Optional):**
+```bash
+uv run pre-commit run --all-files
+```
+
+**Option 2: Using pip**
+
+If you are using a standard virtual environment:
+
+1. **Install the package:**
+```bash
+  pip install pre-commit
+```
+
+2. **Install the git hooks:**
+```bash
+pre-commit install
+```
+
+Once installed, `git commit` will automatically trigger the checks.
+- If they **pass**: Your commit is created normally.
+- If they **fail**: The hooks will often fix the files for you (e.g., `Ruff` reformatting, `Bandit` vulnerabilities detection). Simply `git add` the changed files and commit again.
+
+
+### Manual Execution
+---
+To run the hooks manually at any time:
+
+```
+# Run against only changed files
+uv run pre-commit run
+
+# Run against every file in the repository
+uv run pre-commit run --all-files
+```
+
+
 ## Generate Protocol Buffers
 
 The SDK uses protocol buffers to communicate with the Hedera network. Generate the Python code from the protobuf definitions:
@@ -274,6 +329,6 @@ Test your credentials at [Hedera Portal](https://portal.hedera.com/)
 
 - **Installation issues?** Check the [uv documentation](https://docs.astral.sh/uv/)
 - **Hedera testnet?** Visit [Hedera Portal](https://portal.hedera.com/)
-- **Git questions?** See [Git Basics](https://git-scm.com/book/en/v2/Getting-Started-Git-Basics)
+- **Git questions?** See [Git Basics](https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository)
 - **General questions?** Ask on the [Linux Foundation Decentralized Trust Discord](https://discord.gg/hyperledger)
 (or, if logged in, straight in the [related Hiero Python SDK Group](https://discord.com/channels/905194001349627914/1336494517544681563))

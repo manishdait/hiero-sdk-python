@@ -5,6 +5,7 @@ Example demonstrating transfer transaction nft.
 uv run examples/transaction/transfer_transaction_nft.py
 python examples/transaction/transfer_transaction_nft.py
 """
+
 import os
 import sys
 
@@ -13,7 +14,6 @@ from dotenv import load_dotenv
 from hiero_sdk_python import (
     AccountId,
     Client,
-    Network,
     PrivateKey,
     TransferTransaction,
 )
@@ -29,21 +29,19 @@ from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransact
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
 
+
 load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
 
 
-def setup_client():
-    """Initialize and set up the client with operator account."""
-    # Initialize network and client
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
+def setup_client() -> tuple[Client, AccountId, PrivateKey]:
+    """Setup Client."""
+    client = Client.from_env()
 
-    # Set up operator account
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
+
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
 
     return client, operator_id, operator_key
@@ -67,9 +65,7 @@ def create_test_account(client):
 
     # Check if account creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     # Get account ID from receipt
@@ -111,13 +107,10 @@ def create_nft(client, operator_id, operator_key):
     return nft_token_id
 
 
-def mint_nft(client, nft_token_id, operator_key):
+def mint_nft(client, nft_token_id):
     """Mint a non-fungible token."""
     transaction = (
-        TokenMintTransaction()
-        .set_token_id(nft_token_id)
-        .set_metadata(b"My NFT Metadata 1")
-        .freeze_with(client)
+        TokenMintTransaction().set_token_id(nft_token_id).set_metadata(b"My NFT Metadata 1").freeze_with(client)
     )
 
     receipt = transaction.execute(client)
@@ -145,9 +138,7 @@ def associate_nft(client, account_id, token_id, account_private_key):
     receipt = associate_transaction.execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"NFT association failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"NFT association failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print("NFT successfully associated with account")
@@ -156,11 +147,7 @@ def associate_nft(client, account_id, token_id, account_private_key):
 def transfer_nft_token(client, nft_id, sender_id, receiver_id):
     """Transfer the NFT from the sender to the receiver account."""
     # Transfer nft to the new account
-    transfer_transaction = (
-        TransferTransaction()
-        .add_nft_transfer(nft_id, sender_id, receiver_id)
-        .freeze_with(client)
-    )
+    transfer_transaction = TransferTransaction().add_nft_transfer(nft_id, sender_id, receiver_id).freeze_with(client)
 
     receipt = transfer_transaction.execute(client)
 
@@ -185,7 +172,7 @@ def main():
     client, operator_id, operator_key = setup_client()
     account_id, new_account_private_key = create_test_account(client)
     token_id = create_nft(client, operator_id, operator_key)
-    nft_id = mint_nft(client, token_id, operator_key)
+    nft_id = mint_nft(client, token_id)
     associate_nft(client, account_id, token_id, new_account_private_key)
 
     # Transfer the NFT to the new account

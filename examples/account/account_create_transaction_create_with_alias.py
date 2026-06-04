@@ -25,19 +25,15 @@ from hiero_sdk_python import (
     PrivateKey,
 )
 
+
 load_dotenv()
 
 
 def setup_client() -> Client:
     """Initialize client from environment variables."""
-    try:
-        client = Client.from_env()
-        print(f"Client set up with operator id {client.operator_account_id}")
-        return client
-
-    except Exception:
-        print("Error: Please check OPERATOR_ID, OPERATOR_KEY, and NETWORK in your .env file.")
-        sys.exit(1)
+    client = Client.from_env()
+    print(f"Client set up with operator id {client.operator_account_id}")
+    return client
 
 
 def generate_main_and_alias_keys() -> tuple[PrivateKey, PrivateKey]:

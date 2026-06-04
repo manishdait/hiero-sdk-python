@@ -2,8 +2,11 @@
 Integration tests for NodeCreateTransaction.
 """
 
+from __future__ import annotations
+
 import pytest
 
+from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.client.client import Client
@@ -12,6 +15,7 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.nodes.node_create_transaction import NodeCreateTransaction
 from hiero_sdk_python.nodes.node_update_transaction import NodeUpdateTransaction
 from hiero_sdk_python.response_code import ResponseCode
+
 
 # Gossip certificate is a DER-encoded x509 certificate used for secure communication between nodes.
 # This certificate authenticates the node's identity during gossip protocol communication.
@@ -32,12 +36,15 @@ def test_node_update_transaction_can_execute():
 
     # Account 0.0.2 is a special admin account with privileges for network management operations.
     original_operator_key = PrivateKey.from_string_der(
-        "302e020100300506032b65700422042091132178e7"
-        "2057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
+        "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
     )
     client.set_operator(AccountId(0, 0, 2), original_operator_key)
 
-    account_id = AccountId(0, 0, 4)  # This is the account of the node
+    # This is the account of the node
+    account_key = PrivateKey.generate_ecdsa()
+    account_id = (
+        AccountCreateTransaction().set_key_without_alias(account_key).freeze_with(client).execute(client).account_id
+    )
 
     # Endpoints for the node
     endpoint = Endpoint(domain_name="test.com", port=123)
@@ -62,9 +69,7 @@ def test_node_update_transaction_can_execute():
         .sign(admin_key)
         .execute(client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Node create failed with status {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, f"Node create failed with status {ResponseCode(receipt.status).name}"
 
     assert receipt.node_id is not None, "Node ID should not be None"
 
@@ -79,11 +84,10 @@ def test_node_update_transaction_can_execute():
         .set_grpc_web_proxy_endpoint(update_proxy_endpoint)
         .freeze_with(client)
         .sign(admin_key)
+        .sign(account_key)
         .execute(client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Node update failed with status {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, f"Node update failed with status {ResponseCode(receipt.status).name}"
 
     assert receipt.node_id is not None, "Node ID should not be None"

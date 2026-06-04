@@ -7,7 +7,9 @@
 
 A Python SDK for interacting with the Hedera Hashgraph platform.
 
->**Python compatibility:** 
+> [!NOTE]
+>**Python compatibility**
+>
 > The SDK supports Python ≥ 3.10 and is tested on Python 3.10–3.14. Newer Python versions may work but have not yet been validated.
 
 ## Quick Start
@@ -60,6 +62,7 @@ print(f"Balance: {balance.hbars} HBAR")
 ### For SDK Users
 
 - **[Running Examples](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_users/running_examples.md)** - Complete guide to all SDK operations with code examples
+- **[Error Handling](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_users/error_handling.md)** - Exception types, response codes, and retry guidance
 - **[Examples Directory](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/examples)** - Ready-to-run example scripts
 
 ### For SDK Developers
@@ -68,12 +71,12 @@ print(f"Balance: {balance.hbars} HBAR")
 - **[Setup Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/setup.md)** - First-time environment setup
 - **[Windows Setup Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/setup_windows.md)** - Step-by-step guide for Windows users
 - **[Workflow Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/workflow.md)** - Day-to-day development workflow
-- **[Signing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)** - GPG and DCO commit signing (required)
-- **[Changelog Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/changelog_entry.md)** - How to write changelog entries
-- **[Rebasing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/rebasing.md)** - Keep your branch up-to-date
-- **[Merge Conflicts Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/merge_conflicts.md)** - Resolve conflicts
+- **[Signing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/signing.md)** - GPG and DCO commit signing (required)
+- **[Rebasing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/rebasing.md)** - Keep your branch up-to-date
+- **[Merge Conflicts Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/merge_conflicts.md)** - Resolve conflicts
 - **[Typing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/types.md)** - Python type hints
-- **[Linting Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/linting.md)** - Code quality tools
+- **[Linting Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/ruff.md)** - Code quality tools
+- **[Security Analysis](docs/sdk_developers/bandit.md)** - Security analysis & vulnerability scanning
 
 ### Hedera Network Resources
 
@@ -138,6 +141,13 @@ We welcome contributions! Whether you're:
 - 💻 Writing code
 
 **Start here:** [CONTRIBUTING.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md)
+
+---
+
+## Pull Request Reviews
+
+We welcome community reviews on our PRs.
+Please use this link [PR Review Guidelines](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/pr_review_guidelines.md) to find a detailed guide on reviewing PRs.
 
 ---
 

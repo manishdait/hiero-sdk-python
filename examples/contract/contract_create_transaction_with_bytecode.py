@@ -16,12 +16,13 @@ Usage:
     python -m examples.contract.contract_create_transaction_with_bytecode
 
 """
+
 import os
 import sys
 
 from dotenv import load_dotenv
 
-from hiero_sdk_python import AccountId, Client, Network, PrivateKey
+from hiero_sdk_python import Client
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
 )
@@ -31,22 +32,17 @@ from hiero_sdk_python.response_code import ResponseCode
 # The contract bytecode is pre-compiled from Solidity source code
 from .contracts import SIMPLE_CONTRACT_BYTECODE
 
+
 load_dotenv()
 
 network_name = os.getenv("NETWORK", "testnet").lower()
 
 
-def setup_client():
-    """Initialize and set up the client with operator account."""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+def setup_client() -> Client:
+    """Setup Client."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
     return client
 
 
@@ -74,9 +70,7 @@ def contract_create_with_bytecode():
 
     # Check if contract creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Contract creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     contract_id = receipt.contract_id

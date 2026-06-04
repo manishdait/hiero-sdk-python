@@ -6,32 +6,28 @@ This example demonstrates how to query file contents using the Python SDK.
 uv run examples/file/file_contents_query.py
 python examples/file/file_contents_query.py
 """
+
 import os
 import sys
 
 from dotenv import load_dotenv
 
-from hiero_sdk_python import AccountId, Client, Network, PrivateKey
+from hiero_sdk_python import Client, PrivateKey
 from hiero_sdk_python.file.file_contents_query import FileContentsQuery
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
+
 
 load_dotenv()
 
 network_name = os.getenv("NETWORK", "testnet").lower()
 
 
-def setup_client():
-    """Initialize and set up the client with operator account."""
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+def setup_client() -> Client:
+    """Setup Client."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
     return client
 
 
@@ -41,9 +37,7 @@ def create_file(client: Client):
 
     receipt = (
         FileCreateTransaction()
-        .set_keys(
-            [file_private_key.public_key(), client.operator_private_key.public_key()]
-        )
+        .set_keys([file_private_key.public_key(), client.operator_private_key.public_key()])
         .set_contents(b"Test contents to be queried!")
         .set_file_memo("Test file for query")
         .freeze_with(client)

@@ -12,7 +12,7 @@ jobs:
     runs-on: hl-sdk-py-lin-md
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.16.1
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
         with:
           egress-policy: audit
 
@@ -25,6 +25,7 @@ jobs:
           ASSIGNEE: ${{ github.event.assignee.login }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPO: ${{ github.repository }}
+          MENTOR_LABEL: "notes: mentor-duty"
         run: |
           # Make script executable (just in case permissions were lost during checkout)
           chmod +x .github/scripts/bot-assignment-check.sh
