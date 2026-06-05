@@ -53,6 +53,7 @@ def wait_for_fee_estimation_service_ready(env):
             return
 
         except Exception as e:
+            print(e)
             last_error = e
             time.sleep(5.0)
 

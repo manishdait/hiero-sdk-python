@@ -109,12 +109,15 @@ class BatchTransaction(Transaction):
         """
         transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
 
+        print(transaction)
+
         if transaction_body.HasField("atomic_batch"):
             atomic_batch = transaction_body.atomic_batch
 
             for inner_transaction in atomic_batch.transactions:
                 inner_tx_proto = transaction_pb2.Transaction(signedTransactionBytes=inner_transaction)
 
+                print("Proto ", inner_tx_proto)
                 transaction.inner_transactions.append(Transaction.from_bytes(inner_tx_proto.SerializeToString()))
 
         return transaction

@@ -58,7 +58,6 @@ class Transaction(_Executable):
         # which is necessary in case node is unhealthy and we have to switch it with other node.
         # Each transaction body has the AccountId of the node it's being submitted to.
         # If these do not match `INVALID_NODE_ACCOUNT` error will occur.
-        self._transaction_bodies: dict[AccountId, transaction_pb2.Transaction] = {}
         self._transaction_body_bytes: dict[AccountId, bytes] = {}
 
         # Maps transaction body bytes to their associated signatures
@@ -299,30 +298,23 @@ class Transaction(_Executable):
         if self.batch_key:
             # For Inner Transaction of batch transaction node_account_id=0.0.0
             self.node_account_id = AccountId(0, 0, 0)
-            self._transaction_bodies[AccountId(0, 0, 0)] = self.build_transaction_body()
             self._transaction_body_bytes[AccountId(0, 0, 0)] = self.build_transaction_body().SerializeToString()
             return self
 
         # Single node
         if self.node_account_id:
             self.set_node_account_id(self.node_account_id)
-            self._transaction_bodies[self.node_account_id] = self.build_transaction_body()
             self._transaction_body_bytes[self.node_account_id] = self.build_transaction_body().SerializeToString()
             return self
 
         # Multiple node
-        if len(self.node_account_ids) > 0:
-            for node_account_id in self.node_account_ids:
-                self.node_account_id = node_account_id
-                self._transaction_bodies[self.node_account_id] = self.build_transaction_body()
-                self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
-
-        else:
-            # Use all nodes from client network
+        if len(self.node_account_ids) == 0:
             for node in client.network.nodes:
-                self.node_account_id = node._account_id
-                self._transaction_bodies[self.node_account_id] = self.build_transaction_body()
-                self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
+                self.node_account_ids.append(node._account_id)
+
+        for node_account_id in self.node_account_ids:
+            self.node_account_id = node_account_id
+            self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
 
         return self
 
@@ -732,6 +724,58 @@ class Transaction(_Executable):
         if len(transaction_bytes) == 0:
             raise ValueError("transaction_bytes cannot be empty")
 
+        try:
+            return Transaction._from_transaction_list_bytes(transaction_bytes)
+        except Exception:
+            try:
+                return Transaction._from_single_transaction_bytes(transaction_bytes)
+            except Exception as e:
+                raise ValueError("Unable to parse from bytes") from e
+
+    @staticmethod
+    def _parse_transaction_proto_components(transaction_proto: transaction_pb2.Transaction):
+        try:
+            signed_transaction = transaction_contents_pb2.SignedTransaction()
+            signed_transaction.ParseFromString(transaction_proto.signedTransactionBytes)
+        except Exception as e:
+            raise ValueError(f"Failed to parse signed transaction: {e}") from e
+
+        try:
+            transaction_body = transaction_pb2.TransactionBody()
+            transaction_body.ParseFromString(signed_transaction.bodyBytes)
+        except Exception as e:
+            raise ValueError(f"Failed to parse transaction body: {e}") from e
+
+        transaction_type = transaction_body.WhichOneof("data")
+
+        if transaction_type is None:
+            raise ValueError("Transaction body does not contain any transaction data")
+
+        transaction_class = Transaction._get_transaction_class(transaction_type)
+
+        if transaction_class is None:
+            raise ValueError(f"Unknown transaction type: {transaction_type}")
+
+        return transaction_class, transaction_body, signed_transaction
+
+    @staticmethod
+    def _from_single_transaction_bytes(transaction_bytes):
+        try:
+            transaction_proto = transaction_pb2.Transaction()
+            transaction_proto.ParseFromString(transaction_bytes)
+        except Exception as e:
+            raise ValueError(f"Failed to parse transaction bytes: {e}") from e
+
+        transaction_class, transaction_body, signed_transaction = Transaction._parse_transaction_proto_components(
+            transaction_proto
+        )
+
+        return transaction_class._from_protobuf(
+            transaction_body, signed_transaction.bodyBytes, signed_transaction.sigMap
+        )
+
+    @staticmethod
+    def _from_transaction_list_bytes(transaction_bytes: bytes):
         transaction_list = TransactionList()
         transaction_list.ParseFromString(transaction_bytes)
 
@@ -741,25 +785,9 @@ class Transaction(_Executable):
         restored_transaction = None
 
         for transaction_proto in transaction_list.transaction_list:
-            try:
-                signed_transaction = transaction_contents_pb2.SignedTransaction()
-                signed_transaction.ParseFromString(transaction_proto.signedTransactionBytes)
-            except Exception as e:
-                raise ValueError(f"Failed to parse signed transaction: {e}") from e
-
-            try:
-                transaction_body = transaction_pb2.TransactionBody()
-                transaction_body.ParseFromString(signed_transaction.bodyBytes)
-            except Exception as e:
-                raise ValueError(f"Failed to parse transaction body: {e}") from e
-
-            transaction_type = transaction_body.WhichOneof("data")
-            if transaction_type is None:
-                raise ValueError("Transaction body does not contain any transaction data")
-
-            transaction_class = Transaction._get_transaction_class(transaction_type)
-            if transaction_class is None:
-                raise ValueError(f"Unknown transaction type: {transaction_type}")
+            transaction_class, transaction_body, signed_transaction = Transaction._parse_transaction_proto_components(
+                transaction_proto
+            )
 
             tmp_transaction = transaction_class._from_protobuf(
                 transaction_body, signed_transaction.bodyBytes, signed_transaction.sigMap
