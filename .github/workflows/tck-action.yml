@@ -1,0 +1,53 @@
+name: Test TCK endpoints
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tck-test:
+    name: "Run TCK test"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+      
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.14
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --all-groups --all-packages --all-extras
+
+      - name: Generate Proto Files
+        run: uv run generate_proto.py
+      
+      - name: Prepare Hiero Solo
+        id: solo
+        uses: hiero-ledger/hiero-solo-action@531a2b283ca4912df537d64bf89da0f6be4c2574 # v0.22.0
+        with:
+          installMirrorNode: true
+          soloVersion: v0.74.0
+          mirrorNodeVersion: v0.153.0
+          hieroVersion: v0.73.0
+      
+      - name: Run TCK server
+        run: uv run -m tck
+
+      - name: Run TCK test
+        uses: manishdait/hiero-tck-runner@main
