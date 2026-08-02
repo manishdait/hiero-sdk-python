@@ -47,7 +47,7 @@ jobs:
           hieroVersion: v0.73.0
       
       - name: Run TCK server
-        run: uv run -m tck && npx wait-on http://localhost:8544/ --timeout 60000
+        run: uv run -m tck & npx wait-on http://localhost:8544/ --timeout 60000
 
       - name: Run TCK test
         uses: manishdait/hiero-tck-runner@fb08545a52bad551358979352ab2035fca3a9588
