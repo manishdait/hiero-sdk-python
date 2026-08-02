@@ -46,8 +46,28 @@ jobs:
           mirrorNodeVersion: v0.153.0
           hieroVersion: v0.73.0
       
-      - name: Run TCK server
-        run: uv run -m tck & npx wait-on http://localhost:8544/ --timeout 60000
+      - name: Start TCK Server
+        run: |
+          nohup uv run -m tck > tck-server.log 2>&1 &
+          echo "TCK_PID=$!" >> $GITHUB_ENV
+      
+      - name: Wait for TCK Server Readiness
+        run: |
+          echo "Waiting for TCK server to accept connections"
+          
+          for i in {1..30}; do
+            if curl -s -f -X POST http://localhost:8544/ \
+                 -H "Content-Type: application/json" \
+                 -d '{"jsonrpc":"2.0","method":"setup","params":{},"id":1}' > /dev/null 2>&1; then
+              echo "✅ TCK Server is ready and responding!"
+              exit 0
+            fi
+            echo "Waiting for TCK server... (Attempt $i/30)"
+            sleep 2
+          done
+
+          echo "Server failed to start on http://localhost:8544/ within 60 seconds."
+          exit 1
 
       - name: Run TCK test
         uses: manishdait/hiero-tck-runner@fb08545a52bad551358979352ab2035fca3a9588
