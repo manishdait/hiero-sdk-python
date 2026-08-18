@@ -21,22 +21,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: 3.14
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
-        with:
-          enable-cache: true
-
-      - name: Install dependencies
-        run: uv sync --frozen --all-groups --all-packages --all-extras
-
-      - name: Generate Proto Files
-        run: uv run generate_proto.py
-
       - name: Prepare Hiero Solo
         id: solo
         uses: hiero-ledger/hiero-solo-action@bdae0a37df52190b6b3801c1c981c0ed37f4616e # v0.23.0
@@ -44,29 +28,6 @@ jobs:
           installMirrorNode: true
           mirrorNodeVersion: v0.153.0
           hieroVersion: v0.73.0
-
-      - name: Start TCK Server
-        run: |
-          nohup uv run -m tck > tck-server.log 2>&1 &
-          echo "TCK_PID=$!" >> $GITHUB_ENV
-
-      - name: Wait for TCK Server Readiness
-        run: |
-          echo "Waiting for TCK server to accept connections"
-
-          for i in {1..30}; do
-            if curl -s -f -X POST http://localhost:8544/ \
-                 -H "Content-Type: application/json" \
-                 -d '{"jsonrpc":"2.0","method":"setup","params":{},"id":1}' > /dev/null 2>&1; then
-              echo "✅ TCK Server is ready and responding!"
-              exit 0
-            fi
-            echo "Waiting for TCK server... (Attempt $i/30)"
-            sleep 2
-          done
-
-          echo "Server failed to start on http://localhost:8544/ within 60 seconds."
-          exit 1
 
       - name: Run TCK test
         uses: manishdait/hiero-tck-runner@main
