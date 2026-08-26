@@ -28,6 +28,7 @@ jobs:
           installMirrorNode: true
           mirrorNodeVersion: v0.153.0
           hieroVersion: v0.73.0
+          soloVersion: 0.87.1
 
       - name: Run TCK test
         uses: manishdait/hiero-tck-runner@main
