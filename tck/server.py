@@ -21,7 +21,7 @@ from tck.protocol import (
 class ServerConfig:
     """Configuration for the TCK server."""
 
-    host: str = field(default_factory=lambda: os.getenv("TCK_HOST", "localhost"))
+    host: str = field(default_factory=lambda: os.getenv("TCK_HOST", "0.0.0.0"))  # nosec B104
     port: int = field(default_factory=lambda: _parse_port(os.getenv("TCK_PORT", "8544")))
 
 
