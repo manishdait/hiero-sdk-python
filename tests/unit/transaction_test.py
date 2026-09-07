@@ -795,3 +795,54 @@ def test_transaction_execute_with_invalid_timeout_param(mock_client, timeout):
 
     with pytest.raises(TypeError, match="timeout must be a int or float"):
         tx.execute(mock_client, timeout=timeout)
+
+
+def test_is_signed_by_returns_false_when_tx_not_frozen():
+    """Test signed_by return false if the transaction is not frozen."""
+    transaction = AccountCreateTransaction()
+    key = PrivateKey.generate_ed25519().public_key()
+
+    assert transaction.is_signed_by(key) is False
+
+
+def test_is_signed_by_returns_false_when_signature_map_is_missing():
+    """Test signed by return false when the transaction is not signed by any key."""
+    transaction = AccountCreateTransaction()
+    key = PrivateKey.generate_ed25519().public_key()
+
+    transaction = (
+        AccountCreateTransaction()
+        .set_node_account_ids([AccountId.from_string("0.0.4")])
+        .set_transaction_id(TransactionId.generate(AccountId.from_string("0.0.2")))
+    ).freeze()
+
+    assert transaction.is_signed_by(key) is False
+
+
+def test_is_signed_by_returns_false_when_signed_by_different_key():
+    """Test is signed_by return false when tx signed by diffrent key."""
+    key1 = PrivateKey.generate_ed25519()
+    key2 = PrivateKey.generate_ed25519()
+
+    transaction = (
+        AccountCreateTransaction()
+        .set_node_account_ids([AccountId.from_string("0.0.4")])
+        .set_transaction_id(TransactionId.generate(AccountId.from_string("0.0.2")))
+    ).freeze()
+    transaction.sign(key1)
+
+    assert transaction.is_signed_by(key2.public_key()) is False
+
+
+def test_is_signed_by_returns_true_when_signed_by_given_key():
+    """Test signed by return true when signed by given key."""
+    key = PrivateKey.generate_ed25519()
+
+    transaction = (
+        AccountCreateTransaction()
+        .set_node_account_ids([AccountId.from_string("0.0.4")])
+        .set_transaction_id(TransactionId.generate(AccountId.from_string("0.0.2")))
+    ).freeze()
+
+    transaction.sign(key)
+    assert transaction.is_signed_by(key.public_key()) is True

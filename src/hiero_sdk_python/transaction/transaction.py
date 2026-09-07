@@ -453,15 +453,17 @@ class Transaction(_Executable):
         """
         public_key_bytes = public_key.to_bytes_raw()
 
-        node_transaction_bodies = self._transaction_body_bytes.get(self._transaction_ids.current)
-        if node_transaction_bodies is None:
+        if not self._transaction_body_bytes:
             return False
 
-        for body_bytes in node_transaction_bodies.values():
-            sig_map = self._signature_map.get(body_bytes)
+        for node_transaction_bodies in self._transaction_body_bytes.values():
+            for body_bytes in node_transaction_bodies.values():
+                sig_map = self._signature_map.get(body_bytes)
 
-            if sig_map is None or not any(sig_pair.pubKeyPrefix == public_key_bytes for sig_pair in sig_map.sigPair):
-                return False
+                if sig_map is None or not any(
+                    sig_pair.pubKeyPrefix == public_key_bytes for sig_pair in sig_map.sigPair
+                ):
+                    return False
 
         return True
 
