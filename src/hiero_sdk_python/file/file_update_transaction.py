@@ -80,7 +80,7 @@ class FileUpdateTransaction(Transaction):
         self.file_id = file_id
         return self
 
-    def set_keys(self, keys: list[Key] | None | Key) -> FileUpdateTransaction:
+    def set_keys(self, keys: Key | list[Key] | tuple[Key, ...] | None) -> FileUpdateTransaction:
         """
         Sets the new list of keys that can modify or delete the file.
 
