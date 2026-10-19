@@ -3,7 +3,6 @@ name: Secondary PR Check - TCK Test
 on:
   push:
     branches:
-      - "main"
     paths:
       - "src/**"
       - "tck/**"
@@ -81,3 +80,4 @@ jobs:
         uses: hiero-hackers/hiero-tck-action@71c05203834ed80c5897a387c44a25ab215b3efe #v0.0.1
         with:
           sdk: python
+          tckTag: main
