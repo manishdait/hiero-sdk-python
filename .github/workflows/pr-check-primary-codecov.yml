@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   coverage:
-    runs-on: hl-sdk-py-lin-md
+    runs-on: ubuntu-latest
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
