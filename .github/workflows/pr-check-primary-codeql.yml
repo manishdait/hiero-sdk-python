@@ -16,7 +16,7 @@ permissions:
 jobs:
     analyze:
         name: Analyze (${{ matrix.language }})
-        runs-on: hl-sdk-py-lin-md
+        runs-on: ubuntu-latest
         permissions:
             contents: read
             # required for all workflows
